@@ -16,13 +16,15 @@ CREATE TABLE companies (
     sector     TEXT                   -- 분석 범위 (CDMO)
 );
 
--- 뉴스 (통합본 03_CDMO_news_3y 기준: 제공 + 팀원 수집 + 구글 뉴스 수집)
+-- 뉴스 (통합본 03_CDMO_news_3y 기준: 제공 + 팀원 수집 + 구글 뉴스 수집 + 해외 영어 뉴스)
 CREATE TABLE news (
     news_id        INTEGER PRIMARY KEY,
     origin         TEXT NOT NULL
-                   CHECK (origin IN ('provided', 'team', 'google_company', 'google_cdmo')),
+                   CHECK (origin IN ('provided', 'team', 'google_company', 'google_cdmo',
+                                     'google_global')),
                                       -- provided: 제공 뉴스 / team: 팀원 수집 (둘 다 본문 있음)
                                       -- google_company: 5개사 기업명 검색 / google_cdmo: CDMO 키워드 검색 (제목만)
+                                      -- google_global: 해외(영어) 검색, 구글 뉴스 미국판 (제목만)
     title          TEXT NOT NULL,
     body           TEXT,              -- 본문 전문. google_* 는 NULL
     url            TEXT NOT NULL UNIQUE,
@@ -36,10 +38,14 @@ CREATE TABLE news (
                                       -- 같은 정규화 제목이 7일 이내에 먼저 나온 기사의 news_id. 대표 기사는 NULL
     search_terms   TEXT,              -- 수집에 쓴 검색어·기업명 ('; ' 구분). 제공 뉴스는 NULL (news_keywords 참고)
     cdmo_rel_basis TEXT NOT NULL,     -- CDMO 관련 근거: title / body / query / none
-    cdmo_kw_basis  TEXT NOT NULL      -- CDMO 키워드 근거: title / body / query / none (query 는 신뢰도 낮음)
+    cdmo_kw_basis  TEXT NOT NULL,     -- CDMO 키워드 근거: title / body / query / none (query 는 신뢰도 낮음)
+    lang           TEXT NOT NULL DEFAULT 'ko' CHECK (lang IN ('ko', 'en')),
+                                      -- 기사 언어. en(해외 검색)은 대시보드에서 한국어로 번역해 보여준다
+    title_ko       TEXT               -- 한국어 번역 제목 캐시 (en 기사용). 적재 시 NULL, 번역 단계에서 채운다
 );
 CREATE INDEX idx_news_date ON news(published_date);
 CREATE INDEX idx_news_origin ON news(origin);
+CREATE INDEX idx_news_lang ON news(lang);
 
 -- 뉴스 ↔ CDMO 키워드 (조에서 정의한 6개, 규칙 기반 재분류 결과). 키워드가 없는 기사는 행이 없다
 CREATE TABLE news_cdmo_keywords (
@@ -115,7 +121,9 @@ SELECT 'news' AS doc_type,
        (SELECT keyword FROM news_cdmo_keywords k
          WHERE k.news_id = n.news_id AND k.is_primary = 1) AS keyword,
        n.origin AS subtype,
-       n.dup_of IS NOT NULL AS is_duplicate
+       n.dup_of IS NOT NULL AS is_duplicate,
+       n.lang AS lang,
+       n.title_ko AS title_ko
 FROM news n
 LEFT JOIN news_companies nc ON nc.news_id = n.news_id
 UNION ALL
@@ -130,7 +138,9 @@ SELECT 'disclosure',
        d.event_class,
        NULL,
        d.pblntf_ty_nm,
-       d.is_amended
+       d.is_amended,
+       'ko',
+       NULL
 FROM disclosures d;
 
 -- 기업 × 일자별 뉴스·공시 건수 (EDA·시점 비교용). 뉴스는 중복 제거 후 기준

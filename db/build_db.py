@@ -22,8 +22,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "collect"))
 sys.path.insert(0, str(ROOT / "analysis"))
-from config import (CDMO_KEYWORDS, CDMO_OUT_DIR, CDMO_PATTERN, COMPANY_PATTERNS,  # noqa: E402
-                    DB_END, DB_PATH, DB_START, KEYWORDS, PROVIDED_NEWS_DIR, RAW_DIR, SELECTED)
+from config import (CDMO_KEYWORDS, CDMO_OUT_DIR, CDMO_PATTERN, CDMO_PATTERN_EN,  # noqa: E402
+                    COMPANY_PATTERNS, COMPANY_PATTERNS_EN, DB_END, DB_PATH, DB_START, KEYWORDS,
+                    PROVIDED_NEWS_DIR, RAW_DIR, SELECTED)
 from disclosure_weights import classify  # noqa: E402
 
 csv.field_size_limit(10 ** 9)
@@ -34,6 +35,9 @@ TYPE_NAMES = {"A": "정기공시", "B": "주요사항보고", "C": "발행공시
               "I": "거래소공시", "J": "공정위공시"}
 PATS = {n: re.compile(p) for n, p in COMPANY_PATTERNS.items()}
 CDMO = re.compile(CDMO_PATTERN)
+# 언어별 패턴. 영어 기사(해외 검색)는 영어 기업명·CDMO 표현으로 판정한다.
+PATS_BY_LANG = {"ko": PATS, "en": {n: re.compile(p) for n, p in COMPANY_PATTERNS_EN.items()}}
+CDMO_BY_LANG = {"ko": CDMO, "en": re.compile(CDMO_PATTERN_EN)}
 DUP_DAYS = 7
 
 
@@ -93,7 +97,7 @@ def load_google() -> list:
 
 
 ORIGINS = {"제공": "provided", "팀원수집": "team", "기업명검색": "google_company",
-           "CDMO검색": "google_cdmo"}
+           "CDMO검색": "google_cdmo", "해외검색": "google_global"}
 
 
 def load_merged() -> list:
@@ -114,7 +118,8 @@ def load_merged() -> list:
             "query_company": set(orig) & set(SELECTED) if origin != "provided" else set(),
             "search_terms": None if origin == "provided" else "; ".join(orig) or None,
             "cdmo_keywords": cdmo, "cdmo_primary": r["대표키워드"],
-            "cdmo_rel_basis": r["CDMO관련근거"], "cdmo_kw_basis": r["키워드근거"]})
+            "cdmo_rel_basis": r["CDMO관련근거"], "cdmo_kw_basis": r["키워드근거"],
+            "lang": r.get("언어") or "ko"})
     return rows
 
 
@@ -136,16 +141,21 @@ def load_news(con, corp) -> None:
             if dup is None:
                 canon.setdefault(tn, []).append((d, i))
         text = r["title"] + " " + (r["body"] or "")
-        con.execute("INSERT INTO news VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        lang = r["lang"]
+        # title_ko(번역 캐시)는 적재 시 NULL로 두고 번역 단계에서 채운다
+        con.execute("INSERT INTO news (news_id, origin, title, body, url, published_at, "
+                    "published_date, press, body_len, cdmo_mention, title_norm, dup_of, "
+                    "search_terms, cdmo_rel_basis, cdmo_kw_basis, lang) "
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (i, r["origin"], r["title"], r["body"], r["url"], r["published_at"], d,
-                     r["press"], len(r["body"] or ""), int(bool(CDMO.search(text))), tn, dup,
-                     r["search_terms"], r["cdmo_rel_basis"], r["cdmo_kw_basis"]))
+                     r["press"], len(r["body"] or ""), int(bool(CDMO_BY_LANG[lang].search(text))),
+                     tn, dup, r["search_terms"], r["cdmo_rel_basis"], r["cdmo_kw_basis"], lang))
         for kw in r["keywords"]:
             con.execute("INSERT INTO news_keywords VALUES (?,?,?)", (i, kw, KEYWORDS[kw]))
         for kw in r["cdmo_keywords"]:
             con.execute("INSERT INTO news_cdmo_keywords VALUES (?,?,?,?)",
                         (i, kw, CDMO_KEYWORDS[kw], int(kw == r["cdmo_primary"])))
-        for name, pat in PATS.items():
+        for name, pat in PATS_BY_LANG[lang].items():
             if pat.search(r["title"]):
                 field = "title"
             elif r["body"] and pat.search(r["body"]):
