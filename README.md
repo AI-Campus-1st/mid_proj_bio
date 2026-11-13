@@ -3,8 +3,8 @@
 뉴스와 DART 공시로 바이오 CDMO 5개사(삼성바이오로직스, SK바이오사이언스, 프레스티지바이오로직스, 에스티팜, 바이넥스)의 이슈를 분석한다.
 
 - 과제 안내: `중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md`
-- 기업 선정 근거: `docs/기업선정_근거.md`
-- 데이터 구조: `docs/데이터_스키마.md`
+- 기업 선정 근거: `docs/company_selection.md`
+- 데이터 구조: `docs/data_schema.md`
 
 > **대시보드가 답해야 하는 질문**
 > "이 산업에서 지금 무슨 일이 일어나고 있으며, 그 판단의 근거는 무엇인가."
@@ -101,7 +101,7 @@ python collect/collect_dart_selected.py
 python collect/collect_news_cdmo.py
 ```
 
-5. 뉴스 통합본 생성 — 제공·팀원 수집(`data/raw/cdmo_*.csv`)·구글 뉴스 수집분을 합치고 CDMO 키워드로 재분류 (`03_CDMO_news_3y/`, 설명은 `docs/CDMO_뉴스_재분류.md`)
+5. 뉴스 통합본 생성 — 제공·팀원 수집(`data/raw/cdmo_*.csv`)·구글 뉴스 수집분을 합치고 CDMO 키워드로 재분류 (`03_CDMO_news_3y/`, 설명은 `docs/news_sort.md`)
 
 ```bash
 python analysis/build_cdmo_news.py
@@ -117,7 +117,7 @@ python db/build_db.py
 
 ## 기업 선정 근거 재현
 
-`docs/기업선정_근거.md` 7절 참고.
+`docs/company_selection.md` 7절 참고.
 
 ## 브랜치 전략 (Gitflow)
 
