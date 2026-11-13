@@ -16,13 +16,15 @@ CREATE TABLE companies (
     sector     TEXT                   -- 분석 범위 (CDMO)
 );
 
--- 뉴스 (제공 뉴스 + 기업명 추가 수집 뉴스)
+-- 뉴스 (통합본 03_CDMO_news_3y 기준: 제공 + 팀원 수집 + 구글 뉴스 수집)
 CREATE TABLE news (
     news_id        INTEGER PRIMARY KEY,
-    origin         TEXT NOT NULL CHECK (origin IN ('provided', 'google_rss')),
-                                      -- provided: 제공 뉴스(본문 있음) / google_rss: 기업명 검색으로 추가 수집(제목만)
+    origin         TEXT NOT NULL
+                   CHECK (origin IN ('provided', 'team', 'google_company', 'google_cdmo')),
+                                      -- provided: 제공 뉴스 / team: 팀원 수집 (둘 다 본문 있음)
+                                      -- google_company: 5개사 기업명 검색 / google_cdmo: CDMO 키워드 검색 (제목만)
     title          TEXT NOT NULL,
-    body           TEXT,              -- 본문 전문. google_rss 는 NULL
+    body           TEXT,              -- 본문 전문. google_* 는 NULL
     url            TEXT NOT NULL UNIQUE,
     published_at   TEXT NOT NULL,     -- 'YYYY-MM-DDTHH:MM:SS' (KST)
     published_date TEXT NOT NULL,     -- 'YYYY-MM-DD' (KST)
@@ -30,13 +32,26 @@ CREATE TABLE news (
     body_len       INTEGER NOT NULL DEFAULT 0,
     cdmo_mention   INTEGER NOT NULL DEFAULT 0,  -- 제목·본문에 CDMO/위탁(개발)생산 표현이 있으면 1
     title_norm     TEXT,              -- 중복 판정용 정규화 제목 (한글·영문·숫자만)
-    dup_of         INTEGER REFERENCES news(news_id)
+    dup_of         INTEGER REFERENCES news(news_id),
                                       -- 같은 정규화 제목이 7일 이내에 먼저 나온 기사의 news_id. 대표 기사는 NULL
+    search_terms   TEXT,              -- 수집에 쓴 검색어·기업명 ('; ' 구분). 제공 뉴스는 NULL (news_keywords 참고)
+    cdmo_rel_basis TEXT NOT NULL,     -- CDMO 관련 근거: title / body / query / none
+    cdmo_kw_basis  TEXT NOT NULL      -- CDMO 키워드 근거: title / body / query / none (query 는 신뢰도 낮음)
 );
 CREATE INDEX idx_news_date ON news(published_date);
 CREATE INDEX idx_news_origin ON news(origin);
 
--- 뉴스 ↔ 수집 키워드 (가이드 2-3). 한 기사가 여러 키워드에 걸릴 수 있다. 제공 뉴스만 해당
+-- 뉴스 ↔ CDMO 키워드 (조에서 정의한 6개, 규칙 기반 재분류 결과). 키워드가 없는 기사는 행이 없다
+CREATE TABLE news_cdmo_keywords (
+    news_id    INTEGER NOT NULL REFERENCES news(news_id),
+    keyword    TEXT NOT NULL,         -- CDMO 규제·정책 / 지정학 / 모달리티 / 생산능력 / 수주 / 경쟁 구도
+    category   TEXT NOT NULL,         -- 규제 및 정책 / 기술 및 트렌드 / 시장 및 경쟁
+    is_primary INTEGER NOT NULL,      -- 대표 키워드이면 1 (기사당 1개)
+    PRIMARY KEY (news_id, keyword)
+);
+CREATE INDEX idx_nck_kw ON news_cdmo_keywords(keyword);
+
+-- 뉴스 ↔ 원래 수집 키워드 (가이드 2-3의 바이오 키워드). 제공 뉴스만 해당
 CREATE TABLE news_keywords (
     news_id  INTEGER NOT NULL REFERENCES news(news_id),
     keyword  TEXT NOT NULL,           -- 바이오 규제 / 바이오 특허 / 바이오 R&D / 바이오 M&A / 바이오 투자 유치
@@ -95,8 +110,10 @@ SELECT 'news' AS doc_type,
        n.body AS body,
        n.press AS source,
        n.url AS url,
-       (SELECT group_concat(category, '; ') FROM
-            (SELECT DISTINCT category FROM news_keywords k WHERE k.news_id = n.news_id)) AS category,
+       (SELECT category FROM news_cdmo_keywords k
+         WHERE k.news_id = n.news_id AND k.is_primary = 1) AS category,
+       (SELECT keyword FROM news_cdmo_keywords k
+         WHERE k.news_id = n.news_id AND k.is_primary = 1) AS keyword,
        n.origin AS subtype,
        n.dup_of IS NOT NULL AS is_duplicate
 FROM news n
@@ -111,6 +128,7 @@ SELECT 'disclosure',
        d.flr_nm,
        d.url,
        d.event_class,
+       NULL,
        d.pblntf_ty_nm,
        d.is_amended
 FROM disclosures d;

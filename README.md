@@ -11,6 +11,7 @@
 | 경로 | 내용 |
 |---|---|
 | `02_BIO_news_3y/` | 제공 뉴스 CSV (2023-10-19 ~ 2026-10-19) |
+| `03_CDMO_news_3y/` | CDMO 키워드로 재분류한 뉴스 통합본 (제공 + 추가 수집) |
 | `collect/` | 수집 계층 — DART 공시, 추가 뉴스. 응답 원본을 `data/raw/` 에 저장 |
 | `db/` | 적재 계층 — 통합 스키마(`schema.sql`)와 DB 구축(`build_db.py`) |
 | `analysis/` | 분석 계층 — 기업 선정용 공시 가중 점수 |
@@ -53,7 +54,19 @@ python collect/collect_news_selected.py
 python collect/collect_dart_selected.py
 ```
 
-4. 통합 DB 생성
+4. CDMO 키워드 뉴스 추가 수집 (구글 뉴스 RSS, 20~30분)
+
+```bash
+python collect/collect_news_cdmo.py
+```
+
+5. 뉴스 통합본 생성 — 제공·팀원 수집(`data/raw/cdmo_*.csv`)·구글 뉴스 수집분을 합치고 CDMO 키워드로 재분류 (`03_CDMO_news_3y/`, 설명은 `docs/CDMO_뉴스_재분류.md`)
+
+```bash
+python analysis/build_cdmo_news.py
+```
+
+6. 통합 DB 생성 — 5번의 통합본과 3번의 공시를 적재
 
 ```bash
 python db/build_db.py

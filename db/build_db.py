@@ -1,8 +1,8 @@
 """뉴스·공시 통합 DB 구축 (data/db/bio_cdmo.sqlite).
 
 수집된 원본만 읽어 DB를 처음부터 다시 만든다. API는 호출하지 않는다.
-- 제공 뉴스: 02_BIO_news_3y/*묶음*.csv (URL 기준 1행, 본문·키워드 포함)
-- 추가 뉴스: data/raw/news/company_{5개사}.jsonl (구글 뉴스 RSS, 제목만)
+- 뉴스: 03_CDMO_news_3y/*묶음*.csv — 제공·팀원 수집·구글 뉴스 수집분을 합쳐 CDMO 키워드로
+        재분류한 통합본 (analysis/build_cdmo_news.py 가 먼저 만들어 둔다)
 - 공시 목록: data/raw/dart/list_selected/*.json
 - 공시 원문: data/raw/dart/document/{rcept_no}.zip
 모든 자료는 DB_START ~ DB_END (제공 뉴스 기간)로 맞춘다.
@@ -22,8 +22,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "collect"))
 sys.path.insert(0, str(ROOT / "analysis"))
-from config import (CDMO_PATTERN, COMPANY_PATTERNS, DB_END, DB_PATH, DB_START,  # noqa: E402
-                    KEYWORDS, PROVIDED_NEWS_DIR, RAW_DIR, SELECTED)
+from config import (CDMO_KEYWORDS, CDMO_OUT_DIR, CDMO_PATTERN, COMPANY_PATTERNS,  # noqa: E402
+                    DB_END, DB_PATH, DB_START, KEYWORDS, PROVIDED_NEWS_DIR, RAW_DIR, SELECTED)
 from disclosure_weights import classify  # noqa: E402
 
 csv.field_size_limit(10 ** 9)
@@ -82,7 +82,7 @@ def load_google() -> list:
             at = datetime.fromisoformat(r["pub_date"]).astimezone(KST)
             title = r["title"]
             src = r.get("source") or ""
-            if src and title.endswith(" - " + src):  # 구글 뉴스는 제목 끝에 매체명을 붙인다
+            while src and title.endswith(" - " + src):  # 구글 뉴스는 제목 끝에 매체명을 붙인다 (두 번 붙는 매체도 있다)
                 title = title[: -len(src) - 3]
             row = by_guid.setdefault(r["guid"] or r["link"], {
                 "origin": "google_rss", "title": " ".join(title.split()), "body": None,
@@ -92,10 +92,37 @@ def load_google() -> list:
     return list(by_guid.values())
 
 
+ORIGINS = {"제공": "provided", "팀원수집": "team", "기업명검색": "google_company",
+           "CDMO검색": "google_cdmo"}
+
+
+def load_merged() -> list:
+    """뉴스 통합본(03_CDMO_news_3y/*묶음*.csv, analysis/build_cdmo_news.py 산출물)을 읽는다."""
+    files = {unicodedata.normalize("NFC", p.name): p for p in CDMO_OUT_DIR.glob("*.csv")}
+    bundle = [p for n, p in files.items() if "묶음" in n]
+    if len(bundle) != 1:
+        raise SystemExit("뉴스 통합본이 없습니다. 먼저 python analysis/build_cdmo_news.py 를 실행하세요.")
+    rows = []
+    for r in read_csv(bundle[0]):
+        origin = ORIGINS[r["수집출처"]]
+        orig = [k.strip() for k in r["원수집키워드"].split(";") if k.strip()]
+        cdmo = [k for k in r["수집키워드"].split("; ") if k in CDMO_KEYWORDS]
+        rows.append({
+            "origin": origin, "title": r["제목"], "body": r["본문전문"] or None,
+            "url": r["원문URL"], "published_at": r["발행일"], "press": r["매체명"],
+            "keywords": orig if origin == "provided" else [],
+            "query_company": set(orig) & set(SELECTED) if origin != "provided" else set(),
+            "search_terms": None if origin == "provided" else "; ".join(orig) or None,
+            "cdmo_keywords": cdmo, "cdmo_primary": r["대표키워드"],
+            "cdmo_rel_basis": r["CDMO관련근거"], "cdmo_kw_basis": r["키워드근거"]})
+    return rows
+
+
 def load_news(con, corp) -> None:
-    rows = [r for r in load_provided() + load_google() if in_period(r["published_at"][:10])]
-    # 제공 뉴스를 먼저 넣어, 같은 기사가 양쪽에 있으면 본문이 있는 쪽이 대표가 되게 한다.
-    rows.sort(key=lambda r: (r["origin"] != "provided", r["published_at"], r["url"]))
+    rows = [r for r in load_merged() if in_period(r["published_at"][:10])]
+    # 본문이 있는 출처를 먼저 넣어, 같은 제목이 겹치면 본문이 있는 쪽이 대표가 되게 한다.
+    order = list(ORIGINS.values())
+    rows.sort(key=lambda r: (order.index(r["origin"]), r["published_at"], r["url"]))
     canon = {}  # title_norm -> [(date, news_id)] 대표 기사
     for i, r in enumerate(rows, 1):
         d = r["published_at"][:10]
@@ -109,11 +136,15 @@ def load_news(con, corp) -> None:
             if dup is None:
                 canon.setdefault(tn, []).append((d, i))
         text = r["title"] + " " + (r["body"] or "")
-        con.execute("INSERT INTO news VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        con.execute("INSERT INTO news VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                     (i, r["origin"], r["title"], r["body"], r["url"], r["published_at"], d,
-                     r["press"], len(r["body"] or ""), int(bool(CDMO.search(text))), tn, dup))
+                     r["press"], len(r["body"] or ""), int(bool(CDMO.search(text))), tn, dup,
+                     r["search_terms"], r["cdmo_rel_basis"], r["cdmo_kw_basis"]))
         for kw in r["keywords"]:
             con.execute("INSERT INTO news_keywords VALUES (?,?,?)", (i, kw, KEYWORDS[kw]))
+        for kw in r["cdmo_keywords"]:
+            con.execute("INSERT INTO news_cdmo_keywords VALUES (?,?,?,?)",
+                        (i, kw, CDMO_KEYWORDS[kw], int(kw == r["cdmo_primary"])))
         for name, pat in PATS.items():
             if pat.search(r["title"]):
                 field = "title"
@@ -219,7 +250,7 @@ def main():
 
     con = sqlite3.connect(DB_PATH)
     print(f"DB: {DB_PATH}  ({DB_START} ~ {DB_END})")
-    for t in ("companies", "news", "news_keywords", "news_companies", "disclosures",
+    for t in ("companies", "news", "news_keywords", "news_cdmo_keywords", "news_companies", "disclosures",
               "disclosure_documents"):
         print(f"  {t}: {con.execute(f'SELECT COUNT(*) FROM {t}').fetchone()[0]}")
     con.close()
