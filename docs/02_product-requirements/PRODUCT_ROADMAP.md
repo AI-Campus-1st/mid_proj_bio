@@ -30,7 +30,7 @@ Day 4와 Day 5는 서로 독립적이므로 Day 3 이후 나누어 병행할 수
 | 뉴스 보강 | 기업명 검색, CDMO 키워드 검색, 팀원 수집, 해외(영어) 지정학 검색 | `collect/`, `docs/news_sort.md` |
 | 통합·재분류 | 통합본 9,216건, CDMO 키워드 6개 규칙 기반 분류, 중복 표시 | `analysis/build_cdmo_news.py` |
 | DB | SQLite 통합 스키마, 뉴스·공시 적재 | `db/schema.sql`, `db/build_db.py`, `docs/data_schema.md` |
-| 환경·협업 | `requirements.txt`, `.env.example`, Gitflow, `CLAUDE.md` 기록 규칙 | README, `CLAUDE.md` |
+| 환경·협업 | `requirements.txt`, `.env.example`, 브랜치 규칙(Gitflow → `main` 단일 브랜치로 전환), `CLAUDE.md` 기록 규칙 | README, `CLAUDE.md` |
 
 ## 3. 다음 단계 우선순위
 

@@ -12,7 +12,7 @@
 넣을 내용:
   - Day 1~7 단계, 완료 조건(가이드 4절), 계획일·실제 완료일, 상태
   - 제출물 마감: 코드 저장소, 대시보드, PDF 리포트, PPT 발표
-  - 릴리스 기록(release/x.y.z → main)
+  - `main` 반영 기록(주요 PR 번호와 머지일). `release` 브랜치는 쓰지 않는다 (main 단일 브랜치 운영)
 
 참고할 기존 자료 (내용을 옮길 때 유실 없이 옮기고, 옮긴 뒤 masterplan.md 의 이전 현황을 갱신):
   - docs/02_product-requirements/PRODUCT_ROADMAP.md 1절
