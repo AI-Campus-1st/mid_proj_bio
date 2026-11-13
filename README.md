@@ -101,13 +101,19 @@ python collect/collect_dart_selected.py
 python collect/collect_news_cdmo.py
 ```
 
-5. 뉴스 통합본 생성 — 제공·팀원 수집(`data/raw/cdmo_*.csv`)·구글 뉴스 수집분을 합치고 CDMO 키워드로 재분류 (`03_CDMO_news_3y/`, 설명은 `docs/news_sort.md`)
+5. 해외(영어) 뉴스 추가 수집 — CDMO 지정학 이슈를 구글 뉴스 미국판으로 검색 (`data/raw/news_global/`, 영어 원문 저장)
+
+```bash
+python collect/collect_news_global.py
+```
+
+6. 뉴스 통합본 생성 — 제공·팀원 수집(`data/raw/cdmo_*.csv`)·구글 뉴스 수집분(해외 포함)을 합치고 CDMO 키워드로 재분류 (`03_CDMO_news_3y/`, 설명은 `docs/news_sort.md`)
 
 ```bash
 python analysis/build_cdmo_news.py
 ```
 
-6. 통합 DB 생성 — 5번의 통합본과 3번의 공시를 적재
+7. 통합 DB 생성 — 6번의 통합본과 3번의 공시를 적재
 
 ```bash
 python db/build_db.py
