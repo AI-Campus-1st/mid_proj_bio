@@ -1,1 +1,6 @@
 .env
+
+# 재생성 가능한 대용량 산출물
+data/db/
+data/raw/dart/document/
+__pycache__/
