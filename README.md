@@ -125,28 +125,3 @@ python db/build_db.py
 
 `docs/company_selection.md` 7절 참고.
 
-## 브랜치 전략 (main 단일 브랜치)
-
-`main` 하나만 유지한다. (2026-11-13, Gitflow의 `develop`·`release` 브랜치를 없애고 전환)
-
-| 브랜치 | 용도 |
-|---|---|
-| `main` | 유일한 기준 브랜치. 항상 실행 가능한 상태를 유지한다 |
-| `feature/<이름>` | 작업 브랜치 — `main` 에서 분기, `main` 으로 Pull Request. 머지 후 삭제 |
-
-1. 작업을 시작할 때 최신 `main` 에서 브랜치를 만든다.
-
-```bash
-git checkout main
-```
-
-```bash
-git pull
-```
-
-```bash
-git checkout -b feature/<이름>
-```
-
-2. 작업이 끝나면 push하고 `main` 으로 Pull Request를 연다. 머지는 사람이 한다.
-3. 머지된 작업 브랜치는 원격·로컬 모두 삭제한다.
