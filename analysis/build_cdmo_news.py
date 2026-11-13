@@ -111,8 +111,23 @@ def load_cdmo_raw() -> list:
     return [r for r in by_guid.values() if in_period(r["published_at"][:10])]
 
 
+def load_global_bodies() -> dict:
+    """collect_news_global_body.py 가 받은 영어 기사 본문 (guid -> 기록). 성공(ok)한 마지막 기록만 쓴다."""
+    path = GLOBAL_NEWS_DIR / "_bodies.jsonl"
+    if not path.exists():
+        return {}
+    out = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        r = json.loads(line)
+        if r.get("status") == "ok" and r.get("body"):
+            out[r["guid"]] = r
+    return out
+
+
 def load_global_raw() -> list:
-    """해외(영어) 검색 원본을 기사 단위(guid)로 합친다. 걸린 키워드와 세부 이슈를 모두 기록한다."""
+    """해외(영어) 검색 원본을 기사 단위(guid)로 합친다. 걸린 키워드와 세부 이슈를 모두 기록한다.
+    본문을 받은 기사는 본문과 실제 기사 URL로 채운다 (나머지는 제목만, 구글 뉴스 링크)."""
+    bodies = load_global_bodies()
     by_guid = {}
     for f in sorted(GLOBAL_NEWS_DIR.glob("*_en.jsonl")):
         for line in f.read_text(encoding="utf-8").splitlines():
@@ -123,9 +138,12 @@ def load_global_raw() -> list:
             title, src = r["title"], r.get("source") or ""
             while src and title.endswith(" - " + src):
                 title = title[: -len(src) - 3]
-            row = by_guid.setdefault(r["guid"] or r["link"], {
+            key = r["guid"] or r["link"]
+            got = bodies.get(key, {})
+            row = by_guid.setdefault(key, {
                 "origin": "해외검색", "lang": "en", "title": " ".join(title.split()),
-                "body": None, "url": r["link"], "published_at": at.strftime("%Y-%m-%dT%H:%M:%S"),
+                "body": got.get("body"), "url": got.get("url") or r["link"],
+                "published_at": at.strftime("%Y-%m-%dT%H:%M:%S"),
                 "press": src, "keywords": [], "query_kw": [], "issues": []})
             if r["name"] not in row["query_kw"]:
                 row["query_kw"].append(r["name"])
