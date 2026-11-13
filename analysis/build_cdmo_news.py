@@ -5,8 +5,10 @@
   2) 5개사 기업명 검색 뉴스     data/raw/news/company_*.jsonl      (기존 수집)
   3) CDMO 키워드 검색 뉴스      data/raw/news_cdmo/*.jsonl         (추가 수집, 제목만)
   4) 팀원 수집 뉴스             data/raw/cdmo_*.csv                (규제·투자유치, 본문 있음)
+  5) 해외(영어) 검색 뉴스       data/raw/news_global/*_en.jsonl    (구글 뉴스 미국판, 제목만)
 겹치는 기사(같은 링크, 또는 정규화 제목이 같은 기사)는 한 건만 남긴다.
-우선순위는 제공 > 팀원 수집 > 기업명 검색 > CDMO 검색이다. 본문이 있는 쪽을 남기기 위해서다.
+우선순위는 제공 > 팀원 수집 > 기업명 검색 > CDMO 검색 > 해외 검색이다. 본문이 있는 쪽을 남기기 위해서다.
+해외 뉴스는 영어 원문 그대로 두고 '언어' 열을 en 으로 표시한다. 분류에는 영어 규칙(RULES_EN)을 쓴다.
 
 재분류는 규칙 기반이다 (LLM 호출 없음, 재실행하면 같은 결과).
   - CDMO 관련성: CDMO 표현·CDMO 기업명이 제목에 있거나 본문에 3회 이상 → 관련
@@ -28,7 +30,7 @@ sys.path.insert(0, str(ROOT / "collect"))
 sys.path.insert(0, str(ROOT / "db"))
 from build_db import KST, in_period, load_google, load_provided, norm_title  # noqa: E402
 from config import (CDMO_KEYWORDS, CDMO_NEWS_DIR, CDMO_OUT_DIR, DB_END, DB_START,  # noqa: E402
-                    RAW_DIR)
+                    GLOBAL_NEWS_DIR, RAW_DIR)
 
 # CDMO 관련 기사인지 가르는 표현: 업종 용어 + CDMO가 주력인 국내외 기업
 GATE = re.compile(
@@ -55,6 +57,35 @@ RULES = {
 }
 RULES = {k: re.compile(v) for k, v in RULES.items()}
 assert list(RULES) == list(CDMO_KEYWORDS)
+
+# 영어 기사(해외 검색)용. 위 한국어 규칙과 같은 이슈를 영어 기사 표현으로 옮긴 것
+GATE_EN = re.compile(
+    r"CDMO|(?<![A-Za-z])CMO(?![A-Za-z])|(?<![A-Za-z])CDO(?![A-Za-z])"
+    r"|contract (?:development (?:and|&) )?manufactur|outsourc"
+    r"|Samsung Biologics|Lotte Biologics|SK pharmteco|ST\s?Pharm|Binex|Prestige Biologics"
+    r"|Lonza|WuXi|Fujifilm Diosynth|Catalent|Thermo Fisher|AGC Biologics|Samsung Bio", re.I)
+RULES_EN = {
+    "CDMO 규제·정책": r"FDA|EMA|GMP|inspection|warning letter|regulat|compliance|guidance|approval"
+                    r"|legislat|Congress|Senate|\bbill\b|\blaw\b",
+    "CDMO 지정학": r"BIOSECURE|biosecurity|tariff|onshor|reshor|nearshor|domestic manufactur"
+                  r"|U\.?S\.?[- ]based|US manufactur|American manufactur|made in (?:the )?US"
+                  r"|supply chain|geopolit|China|Chinese|Trump|Section 232|decoupl|Europe"
+                  r"|European|\bEU\b",
+    "CDMO 모달리티": r"ADC|antibody.drug conjugate|cell (?:and|&) gene|\bCGT\b|gene therap|cell therap"
+                   r"|mRNA|oligonucleotide|\boligo|bispecific|\bAAV\b|viral vector|CAR-?T|peptide"
+                   r"|modalit|monoclonal|antibod|plasmid|GLP-1",
+    "CDMO 생산능력": r"expan|capacity|new (?:plant|facility|site)|plant|facility|facilities|\bsite\b"
+                   r"|campus|groundbreak|break(?:s)? ground|construct|invest(?:s|ed|ment)? \$"
+                   r"|billion investment|liters?|litres?",
+    "CDMO 수주": r"contract|deal|agreement|order|partner(?:ship)?|signs?|inks?|award|revenue|earnings"
+                r"|quarter|profit|sales|guidance",
+    "CDMO 경쟁 구도": r"acqui|merger|\bM&A\b|buy(?:s|out)?\b|takeover|Lonza|WuXi|Fujifilm|Catalent"
+                    r"|Thermo Fisher|market share|competi|rival|enter(?:s|ing)? (?:the )?market|launch"
+                    r"|spin.?off",
+}
+RULES_EN = {k: re.compile(v, re.I) for k, v in RULES_EN.items()}
+assert list(RULES_EN) == list(CDMO_KEYWORDS)
+PATTERNS = {"ko": (GATE, RULES), "en": (GATE_EN, RULES_EN)}
 NONE = "해당 없음"
 BODY_GATE_MIN, BODY_RULE_MIN, BODY_STRONG, BODY_TOP = 3, 3, 5, 2
 
@@ -80,6 +111,29 @@ def load_cdmo_raw() -> list:
     return [r for r in by_guid.values() if in_period(r["published_at"][:10])]
 
 
+def load_global_raw() -> list:
+    """해외(영어) 검색 원본을 기사 단위(guid)로 합친다. 걸린 키워드와 세부 이슈를 모두 기록한다."""
+    by_guid = {}
+    for f in sorted(GLOBAL_NEWS_DIR.glob("*_en.jsonl")):
+        for line in f.read_text(encoding="utf-8").splitlines():
+            r = json.loads(line)
+            if not r.get("pub_date") or not r.get("title"):
+                continue
+            at = datetime.fromisoformat(r["pub_date"]).astimezone(KST)
+            title, src = r["title"], r.get("source") or ""
+            while src and title.endswith(" - " + src):
+                title = title[: -len(src) - 3]
+            row = by_guid.setdefault(r["guid"] or r["link"], {
+                "origin": "해외검색", "lang": "en", "title": " ".join(title.split()),
+                "body": None, "url": r["link"], "published_at": at.strftime("%Y-%m-%dT%H:%M:%S"),
+                "press": src, "keywords": [], "query_kw": [], "issues": []})
+            if r["name"] not in row["query_kw"]:
+                row["query_kw"].append(r["name"])
+            if r.get("issue") and r["issue"] not in row["issues"]:
+                row["issues"].append(r["issue"])
+    return [r for r in by_guid.values() if in_period(r["published_at"][:10])]
+
+
 def load_team() -> list:
     """팀원이 올린 CSV(제공 뉴스와 같은 컬럼). 같은 링크는 합치고 수집 검색어를 모은다."""
     by_url = {}
@@ -102,16 +156,17 @@ def classify(r: dict):
     """반환: (키워드 목록, 대표 키워드, CDMO 관련 근거, 키워드 근거)"""
     title, body = r["title"], r["body"] or ""
     by_query = bool(r.get("query_kw"))
-    if GATE.search(title):
+    gate, rules = PATTERNS[r.get("lang", "ko")]
+    if gate.search(title):
         rel = "title"
-    elif len(GATE.findall(body)) >= BODY_GATE_MIN:
+    elif len(gate.findall(body)) >= BODY_GATE_MIN:
         rel = "body"
     elif by_query:
         rel = "query"
     else:
         return [], NONE, "none", "none"
-    hit_t = {kw: len(pat.findall(title)) for kw, pat in RULES.items()}
-    hit_b = {kw: len(pat.findall(body)) for kw, pat in RULES.items()}
+    hit_t = {kw: len(pat.findall(title)) for kw, pat in rules.items()}
+    hit_b = {kw: len(pat.findall(body)) for kw, pat in rules.items()}
     if any(hit_t.values()):
         # 제목에 나온 키워드를 따르고, 본문에서 반복해 다룬 키워드만 더한다
         score = {kw: 100 * hit_t[kw] + hit_b[kw] for kw in RULES
@@ -164,9 +219,13 @@ def main():
     raw = load_cdmo_raw()
     for r in sorted(raw, key=lambda r: (r["published_at"], r["url"])):
         add(r, "CDMO검색")
+    global_raw = load_global_raw()
+    for r in sorted(global_raw, key=lambda r: (r["published_at"], r["url"])):
+        add(r, "해외검색")
 
     cols = ["제목", "본문전문", "원문URL", "발행일", "매체명", "문서종류", "수집키워드",
-            "대표키워드", "카테고리", "CDMO관련근거", "키워드근거", "원수집키워드", "수집출처"]
+            "대표키워드", "카테고리", "CDMO관련근거", "키워드근거", "원수집키워드", "수집출처",
+            "언어"]
     out = []
     for r in kept:
         kws, main_kw, rel, basis = classify(r)
@@ -175,9 +234,10 @@ def main():
             "발행일": r["published_at"], "매체명": r["press"], "문서종류": "news",
             "수집키워드": "; ".join(kws) or NONE, "대표키워드": main_kw,
             "카테고리": CDMO_KEYWORDS.get(main_kw, ""), "CDMO관련근거": rel, "키워드근거": basis,
-            "원수집키워드": "; ".join(r.get("keywords") or r.get("query_kw", [])
+            # 해외 검색은 세부 이슈(생물보안법 등)를 남긴다
+            "원수집키워드": "; ".join(r.get("issues") or r.get("keywords") or r.get("query_kw", [])
                                  or sorted(r.get("query_company", []))),
-            "수집출처": r["origin"]})
+            "수집출처": r["origin"], "언어": r.get("lang", "ko")})
     out.sort(key=lambda x: (x["발행일"], x["원문URL"]))
 
     CDMO_OUT_DIR.mkdir(exist_ok=True)
@@ -197,13 +257,14 @@ def main():
         short = kw.replace("CDMO ", "CDMO").replace(" ", "").replace("·", "")
         write(f"03_CDMO_키워드_{short}_{len(rows)}건_{period}.csv", rows)
 
-    print(f"기간 내 원본: 팀원수집 {len(team)}건, CDMO검색 {len(raw)}건")
+    print(f"기간 내 원본: 팀원수집 {len(team)}건, CDMO검색 {len(raw)}건, 해외검색 {len(global_raw)}건")
     print("제외:", dict(dropped))
     print(f"통합본 {len(out)}건:", dict(Counter(x['수집출처'] for x in out)))
-    print("키워드(복수 포함) | 전체 | 제공 | 팀원수집 | 기업명검색 | CDMO검색")
+    print("키워드(복수 포함) | 전체 | 제공 | 팀원수집 | 기업명검색 | CDMO검색 | 해외검색")
     for kw in list(CDMO_KEYWORDS) + [NONE]:
         c = Counter(x["수집출처"] for x in out if kw in x["수집키워드"].split("; "))
-        print(f"  {kw} | {sum(c.values())} | {c['제공']} | {c['팀원수집']} | {c['기업명검색']} | {c['CDMO검색']}")
+        print(f"  {kw} | {sum(c.values())} | {c['제공']} | {c['팀원수집']} | {c['기업명검색']}"
+              f" | {c['CDMO검색']} | {c['해외검색']}")
     print("CDMO관련근거 × 키워드근거:")
     for k, v in sorted(Counter((x["수집출처"], x["CDMO관련근거"], x["키워드근거"]) for x in out).items()):
         print("  ", *k, v)

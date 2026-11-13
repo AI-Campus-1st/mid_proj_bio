@@ -22,11 +22,15 @@ DELAY = 1.0
 LIMIT = 100
 
 
-def fetch(query: str, start: date, end: date) -> list:
+LOCALE_KO = "hl=ko&gl=KR&ceid=KR:ko"
+LOCALE_EN = "hl=en-US&gl=US&ceid=US:en"
+
+
+def fetch(query: str, start: date, end: date, locale: str = LOCALE_KO) -> list:
     """[start, end] 구간 검색. before는 해당 일을 포함하지 않으므로 하루를 더한다."""
     q = f"{query} after:{start - timedelta(days=1)} before:{end + timedelta(days=1)}"
     url = ("https://news.google.com/rss/search?q=" + urllib.parse.quote(q)
-           + "&hl=ko&gl=KR&ceid=KR:ko")
+           + "&" + locale)
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     for attempt in range(5):
         try:

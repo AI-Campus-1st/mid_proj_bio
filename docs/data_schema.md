@@ -9,7 +9,7 @@
 
 ## 1. 데이터 구성 (가이드 2-1 대응)
 
-뉴스는 원본 4종을 합쳐 CDMO 키워드로 재분류한 **통합본**(`03_CDMO_news_3y/*묶음*.csv`)을 거쳐 DB에 들어간다. 통합본을 만드는 과정은 `docs/CDMO_뉴스_재분류.md` 에 있다.
+뉴스는 원본 5종을 합쳐 CDMO 키워드로 재분류한 **통합본**(`03_CDMO_news_3y/*묶음*.csv`)을 거쳐 DB에 들어간다. 통합본을 만드는 과정은 `docs/CDMO_뉴스_재분류.md` 에 있다.
 
 | 구분 | 출처 | 원본 위치 | DB `origin` |
 |---|---|---|---|
@@ -17,6 +17,7 @@
 | 뉴스 (팀원 수집) | CDMO 규제·투자유치 검색 | `data/raw/cdmo_*.csv` | `team` |
 | 뉴스 (기업명 검색) | 구글 뉴스 RSS, 5개사 기업명 | `data/raw/news/company_*.jsonl` | `google_company` |
 | 뉴스 (CDMO 검색) | 구글 뉴스 RSS, CDMO 검색어 25개 | `data/raw/news_cdmo/*.jsonl` | `google_cdmo` |
+| 뉴스 (해외 검색) | 구글 뉴스 RSS 미국판, CDMO 지정학 영어 검색어 4개 | `data/raw/news_global/*_en.jsonl` | `google_global` (`lang='en'`) |
 | 공시 목록 | DART `list.json` | `data/raw/dart/list_selected/` | – (`disclosures`) |
 | 공시 원문 | DART `document.xml` | `data/raw/dart/document/{접수번호}.zip` | – (`disclosure_documents`) |
 
@@ -46,8 +47,8 @@ companies ──< news_companies >── news
 | 컬럼 | 설명 |
 |---|---|
 | `news_id` (PK) | 일련번호 (빌드할 때마다 다시 매긴다) |
-| `origin` | `provided` / `team` (본문 있음), `google_company` / `google_cdmo` (제목만) |
-| `title`, `body` | 제목, 본문 전문 (`google_*` 는 본문 NULL) |
+| `origin` | `provided` / `team` (본문 있음), `google_company` / `google_cdmo` / `google_global` (제목만) |
+| `title`, `body` | 제목, 본문 전문 (`google_*` 는 본문 NULL). `google_global` 은 영어 원문 |
 | `url` | 원문 링크 (UNIQUE) |
 | `published_at`, `published_date` | 발행 일시·일자 (KST) |
 | `press` | 매체명 |
@@ -55,9 +56,13 @@ companies ──< news_companies >── news
 | `cdmo_mention` | 제목·본문에 CDMO·CMO·위탁(개발)생산 표현이 있으면 1 |
 | `title_norm` | 중복 판정용 정규화 제목 (한글·영문·숫자만 남김) |
 | `dup_of` | 중복이면 대표 기사의 `news_id`, 대표 기사는 NULL |
-| `search_terms` | 수집에 쓴 검색어·기업명. 제공 뉴스는 NULL (`news_keywords` 참고) |
+| `search_terms` | 수집에 쓴 검색어·기업명. 제공 뉴스는 NULL (`news_keywords` 참고). 해외 검색은 세부 이슈(생물보안법 / 의약품 관세 / 미국 현지 생산 / 유럽 현지 생산) |
 | `cdmo_rel_basis` | CDMO 관련 근거: `title` / `body` / `query` / `none` |
 | `cdmo_kw_basis` | CDMO 키워드 근거: `title` / `body` / `query` / `none` |
+| `lang` | 기사 언어 `ko` / `en`. `en` 은 대시보드에서 한국어로 번역해 보여준다 |
+| `title_ko` | 한국어 번역 제목 캐시. 적재 시 NULL이고 번역 단계에서 채운다. DB를 다시 빌드하면 비워진다 |
+
+영어 기사의 `cdmo_mention` 과 기업 매핑(`news_companies`)은 영어 패턴(`collect/config.py` 의 `CDMO_PATTERN_EN`, `COMPANY_PATTERNS_EN`)으로 판정한다. 한국어 기사의 판정 규칙은 그대로이다.
 
 ### news_cdmo_keywords — 뉴스 ↔ CDMO 키워드
 | 컬럼 | 설명 |
@@ -105,7 +110,7 @@ companies ──< news_companies >── news
 ### 뷰
 | 뷰 | 용도 |
 |---|---|
-| `v_documents` | 뉴스와 공시를 같은 컬럼(`doc_type, doc_id, corp_code, doc_date, title, body, source, url, category, keyword, subtype, is_duplicate`)으로 조회. 뉴스의 `category`·`keyword` 는 대표 CDMO 키워드 기준, 공시의 `category` 는 `event_class` 이고 `keyword` 는 NULL |
+| `v_documents` | 뉴스와 공시를 같은 컬럼(`doc_type, doc_id, corp_code, doc_date, title, body, source, url, category, keyword, subtype, is_duplicate, lang, title_ko`)으로 조회. 공시는 `lang='ko'`. 뉴스의 `category`·`keyword` 는 대표 CDMO 키워드 기준, 공시의 `category` 는 `event_class` 이고 `keyword` 는 NULL |
 | `v_company_daily` | 기업 × 일자별 뉴스 건수(중복 제거)·공시 건수. 기사량·공시 추이와 시점 비교에 사용 |
 
 ---
@@ -157,7 +162,8 @@ companies ──< news_companies >── news
 ## 5. 한계와 유의점
 
 - **구글 뉴스 수집분에는 본문이 없다.** 제목·매체·일자·링크만 있다. 본문 기반 분석(감성 분류 등)은 `provided`·`team` 또는 제목 기준으로 범위를 정해야 한다.
-- **CDMO 키워드는 규칙 기반 분류이고 정확도를 검수하지 않았다.** `cdmo_kw_basis='query'` (886건)는 제목에 단서가 없어 검색어를 따른 것으로 신뢰도가 낮다. 자세한 한계는 `docs/CDMO_뉴스_재분류.md` 5절에 있다.
+- **해외 뉴스는 영어 원문이다.** 화면에는 `title_ko` 가 있으면 그것을, 없으면 번역해서 보여준다. 국내 기사와 언어가 달라 같은 사건이 국내·해외 기사로 각각 남는다.
+- **CDMO 키워드는 규칙 기반 분류이고 정확도를 검수하지 않았다.** `cdmo_kw_basis='query'` (1,045건, 해외 검색 159건 포함)는 제목에 단서가 없어 검색어를 따른 것으로 신뢰도가 낮다. 자세한 한계는 `docs/CDMO_뉴스_재분류.md` 5절에 있다.
 - **`match_field='query'` 는 관련도가 낮다.** 기업명 검색에 걸렸으나 제목에는 기업명이 없는 기사로, 무관한 기사가 섞여 있다. 기업 단위 분석은 `title`·`body` 만 쓰는 것을 권장한다.
 - **출처마다 시기 분포가 다르다.** 팀원 수집과 CDMO 검색은 2026년에 몰려 있다. 기사량 추이는 `origin` 별로 나눠 해석한다.
 - **구글 뉴스 검색은 한 번에 최대 100건**이다. 삼성바이오로직스는 하루 100건에 닿은 날이 있어 일부 누락이 있을 수 있다.

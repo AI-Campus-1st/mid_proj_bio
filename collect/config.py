@@ -98,3 +98,30 @@ CDMO_QUERIES = {
 }
 CDMO_NEWS_DIR = RAW_DIR / "news_cdmo"
 CDMO_OUT_DIR = ROOT / "03_CDMO_news_3y"
+
+
+# ---------------------------------------------------------------------------
+# 해외(영어) 뉴스 보강 — 국내 언론 중심인 뉴스의 "글로벌" 범위를 보완한다
+# ---------------------------------------------------------------------------
+# 구글 뉴스 미국판(영어)으로 검색한다. 원문(영어)으로 저장하고, 번역은 대시보드에서 한다.
+# 키워드 -> {이슈(한국어 라벨): 영어 검색어}
+GLOBAL_QUERIES = {
+    "CDMO 지정학": {
+        "생물보안법": "CDMO BIOSECURE Act",
+        "의약품 관세": "CDMO pharmaceutical tariffs",
+        "미국 현지 생산": "CDMO US manufacturing",
+        "유럽 현지 생산": "CDMO Europe manufacturing",
+    },
+}
+GLOBAL_NEWS_DIR = RAW_DIR / "news_global"
+
+# 영어 기사용 기업 패턴. 영어 기사에만 적용해 한국어 기사의 매핑 결과는 바꾸지 않는다.
+COMPANY_PATTERNS_EN = {
+    "삼성바이오로직스": r"(?i)Samsung Biologics",
+    "에스티팜": r"(?i)ST\s?Pharm",
+    "SK바이오사이언스": r"(?i)SK\s?bioscience",
+    "바이넥스": r"(?i)Binex",
+    "프레스티지바이오로직스": r"(?i)Prestige\s?Biologics",
+}
+CDMO_PATTERN_EN = (r"(?i)CDMO|(?<![A-Za-z])CMO(?![A-Za-z])"
+                   r"|contract (?:development and )?manufactur")
