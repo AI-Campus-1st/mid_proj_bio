@@ -25,6 +25,7 @@ sys.path.insert(0, str(ROOT / "analysis"))
 from config import (CDMO_KEYWORDS, CDMO_OUT_DIR, CDMO_PATTERN, CDMO_PATTERN_EN,  # noqa: E402
                     COMPANY_PATTERNS, COMPANY_PATTERNS_EN, DB_END, DB_PATH, DB_START, KEYWORDS,
                     PROVIDED_NEWS_DIR, RAW_DIR, SELECTED)
+from clean_text import clean_body, clean_title  # noqa: E402
 from disclosure_weights import classify  # noqa: E402
 
 csv.field_size_limit(10 ** 9)
@@ -150,6 +151,9 @@ def load_news(con, corp) -> None:
                     (i, r["origin"], r["title"], r["body"], r["url"], r["published_at"], d,
                      r["press"], len(r["body"] or ""), int(bool(CDMO_BY_LANG[lang].search(text))),
                      tn, dup, r["search_terms"], r["cdmo_rel_basis"], r["cdmo_kw_basis"], lang))
+        body_clean = clean_body(r["body"])
+        con.execute("INSERT INTO news_clean VALUES (?,?,?,?)",
+                    (i, clean_title(r["title"]), body_clean, len(body_clean or "")))
         for kw in r["keywords"]:
             con.execute("INSERT INTO news_keywords VALUES (?,?,?)", (i, kw, KEYWORDS[kw]))
         for kw in r["cdmo_keywords"]:
@@ -260,7 +264,7 @@ def main():
 
     con = sqlite3.connect(DB_PATH)
     print(f"DB: {DB_PATH}  ({DB_START} ~ {DB_END})")
-    for t in ("companies", "news", "news_keywords", "news_cdmo_keywords", "news_companies", "disclosures",
+    for t in ("companies", "news", "news_clean", "news_keywords", "news_cdmo_keywords", "news_companies", "disclosures",
               "disclosure_documents"):
         print(f"  {t}: {con.execute(f'SELECT COUNT(*) FROM {t}').fetchone()[0]}")
     con.close()

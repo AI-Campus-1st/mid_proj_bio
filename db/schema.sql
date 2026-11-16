@@ -47,6 +47,15 @@ CREATE INDEX idx_news_date ON news(published_date);
 CREATE INDEX idx_news_origin ON news(origin);
 CREATE INDEX idx_news_lang ON news(lang);
 
+-- 뉴스 정제 텍스트 (analysis/clean_text.py 의 정규표현식 규칙). 원문(news.title, news.body)은 그대로 둔다
+-- LLM 입력·임베딩·화면 표시에는 이 테이블의 텍스트를 쓴다
+CREATE TABLE news_clean (
+    news_id        INTEGER PRIMARY KEY REFERENCES news(news_id),
+    title_clean    TEXT NOT NULL,     -- 보이지 않는 문자·HTML 엔티티 제거, 따옴표 통일, 공백 정리
+    body_clean     TEXT,              -- 기자 서명·저작권·제보 문구·이메일·URL 제거. 본문이 없으면 NULL
+    body_clean_len INTEGER NOT NULL DEFAULT 0
+);
+
 -- 뉴스 ↔ CDMO 키워드 (조에서 정의한 6개, 규칙 기반 재분류 결과). 키워드가 없는 기사는 행이 없다
 CREATE TABLE news_cdmo_keywords (
     news_id    INTEGER NOT NULL REFERENCES news(news_id),

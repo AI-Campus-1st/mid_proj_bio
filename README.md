@@ -5,6 +5,7 @@
 - 과제 안내: `중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md`
 - 기업 선정 근거: `docs/company_selection.md`
 - 데이터 구조: `docs/data_schema.md`
+- 텍스트 정제·EDA 결과: `docs/eda_report.md`
 
 > **대시보드가 답해야 하는 질문**
 > "이 산업에서 지금 무슨 일이 일어나고 있으며, 그 판단의 근거는 무엇인가."
@@ -26,10 +27,11 @@
 | `03_CDMO_news_3y/` | CDMO 키워드로 재분류한 뉴스 통합본 (제공 + 추가 수집) |
 | `collect/` | 수집 계층 — DART 공시, 추가 뉴스. 응답 원본을 `data/raw/` 에 저장 |
 | `db/` | 적재 계층 — 통합 스키마(`schema.sql`)와 DB 구축(`build_db.py`) |
-| `analysis/` | 분석 계층 — 기업 선정용 공시 가중 점수 |
+| `analysis/` | 분석 계층 — 기업 선정용 공시 가중 점수, 뉴스 통합·재분류, 텍스트 정제(`clean_text.py`), EDA(`eda.py`) |
 | `data/raw/` | 수집 원본 (JSON, JSONL, zip) |
+| `data/processed/` | 분석 산출물 — 기업 선정 점수, EDA 집계표(`eda_*.csv`) |
 | `data/db/` | 통합 DB `bio_cdmo.sqlite` (git 제외, 아래 순서로 재생성) |
-| `docs/` | 선정 근거, 스키마 문서 |
+| `docs/` | 선정 근거, 스키마 문서, EDA 리포트(차트는 `docs/figures/eda/`) |
 
 ## 기술 스택
 
@@ -113,10 +115,16 @@ python collect/collect_news_global.py
 python analysis/build_cdmo_news.py
 ```
 
-7. 통합 DB 생성 — 6번의 통합본과 3번의 공시를 적재
+7. 통합 DB 생성 — 6번의 통합본과 3번의 공시를 적재. 뉴스 제목·본문을 정제해 `news_clean` 테이블에 함께 싣는다 (규칙은 `analysis/clean_text.py`)
 
 ```bash
 python db/build_db.py
+```
+
+8. EDA — 기사량·공시 추이와 이슈 급증 시점을 집계하고 차트를 만든다 (`data/processed/eda_*.csv`, `docs/figures/eda/`, 해석은 `docs/eda_report.md`). pandas·matplotlib이 필요하다
+
+```bash
+python analysis/eda.py
 ```
 
 기간은 `collect/config.py` 의 `DB_START`, `DB_END` 로 정한다. 값을 바꾸면 `data/raw/dart/list_selected/` 를 비우고 3번부터 다시 실행한다.
