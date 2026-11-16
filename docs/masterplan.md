@@ -55,7 +55,7 @@ docs/
 
 ### 3-2. 문서 목록과 상태
 
-상태: ✅ 작성 완료 · 📝 작성 전(작성 가이드 주석 있음)
+상태: ✅ 작성 완료 · 🔶 일부 작성 · 📝 작성 전(작성 가이드 주석 있음)
 
 | 섹션 | 문서 | 내용 | 상태 |
 |---|---|---|---|
@@ -72,9 +72,9 @@ docs/
 | | [NEWS_CLASSIFICATION](03_data/NEWS_CLASSIFICATION.md) | 카테고리·CDMO 키워드 6개, 규칙 기반 분류, 중복 판정 | 📝 |
 | | [DATA_PIPELINE](03_data/DATA_PIPELINE.md) | 수집 → 재분류 → 적재 → AI → 대시보드 흐름, 재실행 | 📝 |
 | **04 ai** | [AI_REQUIREMENTS](04_ai/AI_REQUIREMENTS.md) | AI 기능 목록, 처리 범위, 사전 생성·근거 조건 | 📝 |
-| | [AI_CLASSIFICATION](04_ai/AI_CLASSIFICATION.md) | 감성·이슈·모달리티·번역 프롬프트와 출력 형식 | 📝 |
+| | [AI_CLASSIFICATION](04_ai/AI_CLASSIFICATION.md) | 감성·이슈·모달리티·번역 프롬프트와 출력 형식 | 🔶 감성 분류 완료, 나머지 작성 전 |
 | | [NEWS_DISCLOSURE_MATCHING](04_ai/NEWS_DISCLOSURE_MATCHING.md) | 뉴스-공시 매칭 규칙, 공시 RAG 구성 | 📝 |
-| | [AI_EVALUATION](04_ai/AI_EVALUATION.md) | 표본 검수 방법과 정확도 기록 (과제 필수) | 📝 |
+| | [AI_EVALUATION](04_ai/AI_EVALUATION.md) | 표본 검수 방법과 정확도 기록 (과제 필수) | 🔶 감성 분류 표본·절차 완료, 결과 기록 대기 |
 | **05 design** | [INFORMATION_ARCHITECTURE](05_design/INFORMATION_ARCHITECTURE.md) | 화면 목록·계층·필터 위치 | 📝 |
 | | [USER_FLOW](05_design/USER_FLOW.md) | 시나리오별 화면 이동 흐름 | 📝 |
 | | [WIREFRAME](05_design/WIREFRAME.md) | 화면별 배치 | 📝 |
