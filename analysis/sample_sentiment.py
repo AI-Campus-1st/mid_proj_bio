@@ -64,7 +64,8 @@ def labeled_count() -> int:
     if not OUT.exists():
         return 0
     with OUT.open(encoding="utf-8-sig", newline="") as f:
-        return sum(any(r.get(k, "").strip() for k in ("annotator_a", "annotator_b", "label_final"))
+        return sum(any((v or "").strip() for k, v in r.items()
+                       if k and (k.startswith("annotator_") or k == "label_final"))
                    for r in csv.DictReader(f))
 
 
