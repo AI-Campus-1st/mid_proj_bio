@@ -10,7 +10,7 @@
 
 | 대상 | 무엇을 보나 | 상태 |
 |---|---|---|
-| **감성(영향) 분류** — 기회/위험/중립 | LLM 라벨이 사람이 정한 정답과 맞는 비율 | 표본 추출 완료, 검수·LLM 실행 대기 |
+| **감성(영향) 분류** — 기회/위험/중립 | LLM 라벨이 사람이 정한 정답과 맞는 비율 | 표본 추출·LLM 라벨링 스크립트 완료, 검수·LLM 실행 대기 |
 | CDMO 키워드 규칙 분류 (한국어·영어) | 키워드 배정이 맞는 비율, `query` 근거의 신뢰도, 영어 규칙의 과다 분류 | 작성 전 |
 | 핵심 이슈 추출, 모달리티 태깅, 번역 | — | 작성 전 |
 | 공시 RAG 답변 | 근거 일치, 근거 없는 질문 거절, 환각 | 작성 전 |
@@ -53,7 +53,7 @@
    - LLM과 같은 조건이 되도록 링크를 열어 원문을 읽지 않고, 파일에 있는 제목·본문 앞부분만으로 판단한다.
    - 판단이 애매하면 `note` 에 이유를 적는다.
 3. **합의:** 두 라벨이 같으면 그대로, 다르면 둘이 논의해 `label_final` 을 정한다. 합의가 어려운 사례는 `note` 에 남기고, 라벨 정의를 고칠 필요가 있으면 [AI_CLASSIFICATION](AI_CLASSIFICATION.md) 을 고친 뒤 프롬프트 버전을 올린다.
-4. **LLM 라벨링:** 전체 4,727건을 LLM으로 분류해 `data/processed/sentiment_llm.csv` 에 저장한다 (형식은 [AI_CLASSIFICATION](AI_CLASSIFICATION.md) 2-6절). 표본 180건만 먼저 돌려 검수해도 된다.
+4. **LLM 라벨링:** `python analysis/label_sentiment.py --sample` 로 표본 180건을 먼저 분류하고(약 $1), 정확도를 확인한 뒤 `--all` 로 전체 4,727건을 분류한다(약 $31). 결과는 `data/processed/sentiment_llm.csv` (형식·설정은 [AI_CLASSIFICATION](AI_CLASSIFICATION.md) 2-5-1·2-6절). 검수자는 LLM 결과 파일을 열어 보지 않는다.
 5. **집계:** `python analysis/eval_sentiment.py` → `data/eval/sentiment_eval_result.md`
 6. **기록:** 결과를 이 문서 4절에 옮기고, 오분류를 보고 프롬프트를 고쳤다면 버전별로 다시 집계해 비교한다.
 

@@ -12,6 +12,18 @@ LABELS = ("기회", "위험", "중립")
 CONFIDENCES = ("high", "medium", "low")
 BODY_CHARS = 1500  # 본문은 앞부분만 넣는다 (호출량·비용 절감, 기사 핵심은 대개 앞부분에 있다)
 
+# 구조화 출력(output_config.format) 스키마 — 응답이 이 형식의 JSON으로 강제된다
+OUTPUT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "label": {"type": "string", "enum": list(LABELS)},
+        "reason": {"type": "string"},
+        "confidence": {"type": "string", "enum": list(CONFIDENCES)},
+    },
+    "required": ["label", "reason", "confidence"],
+    "additionalProperties": False,
+}
+
 SYSTEM_PROMPT = """당신은 국내 바이오 CDMO(위탁개발생산) 기업의 사업전략팀 애널리스트입니다.
 뉴스 기사 한 건을 읽고, 이 기사가 **국내 CDMO 산업**(삼성바이오로직스, SK바이오사이언스,
 프레스티지바이오로직스, 에스티팜, 바이넥스 등)에 주는 영향을 기회 / 위험 / 중립 중 하나로 분류합니다.

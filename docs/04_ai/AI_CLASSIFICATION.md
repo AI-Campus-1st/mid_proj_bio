@@ -106,7 +106,35 @@
 {"label": "기회|위험|중립", "reason": "판단 이유 한 문장(한국어)", "confidence": "high|medium|low"}
 ```
 
-`parse_response()` 가 JSON 형식, 라벨 값, 확신도 값, 이유 유무를 검증한다. 검증에 실패하면 같은 입력으로 재시도하고, 3회 실패하면 라벨을 비우고 실패로 기록한다.
+요청에 구조화 출력(`output_config.format`, 스키마 `OUTPUT_SCHEMA`)을 걸어 이 형식의 JSON만 나오게 하고, `parse_response()` 가 라벨 값·확신도 값·이유 유무를 한 번 더 검증한다. 검증에 실패하거나 모델이 거절(`refusal`)하면 라벨을 비우고 `error` 에 사유를 남긴다. 같은 명령을 다시 실행하면 실패한 기사만 다시 제출된다.
+
+### 2-5-1. 실행 설정 — `analysis/label_sentiment.py`
+
+| 항목 | 값 | 이유 |
+|---|---|---|
+| API | Claude Message Batches API | 실시간 응답이 필요 없는 일괄 작업이라 비동기 배치로 처리. 일반 호출의 50% 가격, 보통 1시간 안에 완료(최대 24시간) |
+| 모델 | `claude-opus-5-5` (`--model` 로 변경 가능) | 기본값. 비용을 줄이려면 `claude-sonnet-5-5` 등으로 바꿔 같은 표본으로 정확도를 비교한다 |
+| effort | `low` (`--effort` 로 변경 가능) | 3개 라벨 분류라 깊은 추론이 필요 없다. 정확도가 부족하면 `medium` 과 비교 |
+| max_tokens | 2,048 | 생각(thinking) 토큰이 포함되므로 JSON 길이보다 넉넉히 |
+| 시스템 프롬프트 | 프롬프트 캐싱 지정 | 모든 요청에 같은 시스템 프롬프트가 붙으므로 캐시로 비용을 줄인다 (짧으면 캐시되지 않을 수 있음) |
+| 예상 비용 | 표본 180건 약 $1, 전체 4,727건 약 $31 | `--dry-run` 이 글자 수로 계산한 대략치. 실제 청구액은 콘솔에서 확인 |
+
+```bash
+python analysis/label_sentiment.py --sample --dry-run
+```
+
+```bash
+python analysis/label_sentiment.py --sample
+```
+
+```bash
+python analysis/label_sentiment.py --all
+```
+
+- `--dry-run`: 제출하지 않고 대상 건수, 예상 비용, 첫 기사의 요청 내용을 보여준다.
+- 제출 후 완료될 때까지 1분마다 상태를 출력한다. 창을 닫아도 배치는 계속 처리되며, `data/processed/sentiment_batches.json` 의 배치 ID로 `--collect <batch_id>` 를 실행하면 결과만 받는다.
+- 이미 같은 모델·프롬프트 버전으로 라벨이 붙은 기사는 다시 제출하지 않는다.
+- API 키: 환경변수 `ANTHROPIC_API_KEY` → `.env` 의 `ANTHROPIC_API_KEY` → `ant auth login` 프로필 순으로 찾는다.
 
 ### 2-6. 결과 저장
 
@@ -124,6 +152,9 @@ DB(`data/db/bio_cdmo.sqlite`)는 빌드할 때마다 새로 만들어지고 `new
 | `model` | 사용한 모델 이름 |
 | `prompt_version` | 예: `sentiment-v1` |
 | `labeled_at` | 처리 시각 (KST) |
+| `error` | 실패 사유 (`refusal:<분류>`, `max_tokens`, `parse:<내용>`, `errored:<유형>`, `expired` 등). 성공이면 빈칸 |
+
+배치 제출 기록(배치 ID, 요청 ID ↔ URL 대응)은 `data/processed/sentiment_batches.json` 에 남는다.
 
 DB 적재 시 `news_sentiment` 테이블로 붙인다 (`06_technical/DATABASE_SCHEMA.md` 작성 시 정의).
 
@@ -135,7 +166,7 @@ DB 적재 시 `news_sentiment` 테이블로 붙인다 (`06_technical/DATABASE_SC
 
 | 버전 | 날짜 | 내용 |
 |---|---|---|
-| sentiment-v1 | 2026-11-16 | 최초 작성 |
+| sentiment-v1 | 2026-11-16 | 최초 작성. 배치 실행 스크립트(`label_sentiment.py`)와 구조화 출력 스키마 추가 — 프롬프트 문구는 그대로 |
 
 ---
 
