@@ -224,3 +224,18 @@
 | 바이넥스 | 131 | 84 | 1 |
 
 - **비고**: 결과 파일(spikes.csv, daily/weekly_counts.csv, png)은 `.gitignore` 대상이 아니지만 요청 범위가 코드라 커밋하지 않음. `analysis/sample_review.py`·검수 표본 엑셀도 커밋하지 않음. push 하지 않음.
+
+## 2026-11-16 — 감성 분류 표본 B 라벨 파일 추가
+
+- **브랜치**: `main`
+- **버전**: 기준 `58eb0b2` (원격 main `abd9f05` 병합 포함) → 결과 (이 커밋)
+- **요청 내용**: B 담당으로 라벨을 단 표본 파일을 push
+- **진행 사항**: 엑셀이 UTF-16 탭 구분 텍스트(`sentiment_sample_b.csv.txt`)로 저장한 파일을 팀 안내 형식(UTF-8 BOM CSV)으로 변환해 `data/eval/sentiment_sample_b.csv` 로 추가. 원본 `sentiment_sample.csv` 와 셀 단위로 대조해 `annotator_b` 외 모든 셀이 같음을 확인. 커밋 전 팀원 브랜치·기록 점검 — `data/eval/` 에 다른 라벨 파일 없음. 이전 세션의 이슈 급증 분석 커밋(`67a6588`)·원격 main 병합 커밋도 함께 push. 앞서 만든 영어50·한국어50 제목 표본(`analysis/sample_review.py`, 커밋 안 함)은 팀 표본을 쓰기로 해 삭제
+
+### 원본 대비 변경사항
+
+| 파일 | 구분 | 원본 | 변경 후 |
+|------|------|------|---------|
+| `data/eval/sentiment_sample_b.csv` | 추가 | (없음) | `sentiment_sample.csv` 와 같은 180행 × 16열, `annotator_b` 만 채움: 기회 113 · 중립 46 · 위험 21. `annotator_a`·`label_final`·`note` 는 빈칸 |
+
+- **비고**: 공유 저장소에 올라가 A 담당이 라벨링 전에 B 답을 볼 수 있음(사용자 확인 후 진행). A 라벨이 끝나면 A 파일에 `annotator_b` 를 붙여 `label_final` 합의 후 `sentiment_sample.csv` 를 교체해야 함. 엑셀에 열려 있던 `sentiment_sample_b.csv.txt` 와 `data/processed/review_sample/` 엑셀은 잠겨 있어 지우지 못함(커밋 안 함).
