@@ -10,7 +10,7 @@
 
 | 대상 | 무엇을 보나 | 상태 |
 |---|---|---|
-| **감성(영향) 분류** — 기회/위험/중립 | LLM 라벨이 사람이 정한 정답과 맞는 비율 | 표본 추출·LLM 라벨링 스크립트 완료, 검수·LLM 실행 대기 |
+| **감성(영향) 분류** — 기회/위험/중립 | LLM 라벨이 사람이 정한 정답과 맞는 비율 | 3명 개별 라벨링 완료·합본 작성, `label_final` 합의와 LLM 실행 대기 |
 | CDMO 키워드 규칙 분류 (한국어·영어) | 키워드 배정이 맞는 비율, `query` 근거의 신뢰도, 영어 규칙의 과다 분류 | 작성 전 |
 | 핵심 이슈 추출, 모달리티 태깅, 번역 | — | 작성 전 |
 | 공시 RAG 답변 | 근거 일치, 근거 없는 질문 거절, 환각 | 작성 전 |
@@ -48,18 +48,19 @@
 ## 3. 감성 분류 — 검수 절차
 
 1. **표본 파일 열기:** `data/eval/sentiment_sample.csv` 를 엑셀이나 구글 시트로 연다. 각 행에 제목, 본문 앞부분(LLM 입력과 같은 1,500자), 매체, 날짜, 링크가 있다.
-2. **독립 라벨링:** 검수자 2명이 [AI_CLASSIFICATION](AI_CLASSIFICATION.md) 2-2절 라벨 정의와 2-3절 판단 규칙에 따라 각자 `annotator_a`, `annotator_b` 에 `기회` / `위험` / `중립` 을 적는다.
+2. **독립 라벨링:** 검수자마다 표본 파일을 복사해 [AI_CLASSIFICATION](AI_CLASSIFICATION.md) 2-2절 라벨 정의와 2-3절 판단 규칙에 따라 자기 열(`annotator_a`, `annotator_b`, `annotator_c`, …)에 `기회` / `위험` / `중립` 을 적고, `data/eval/sentiment_sample_<x>.csv` 로 올린다 (UTF-8 CSV).
    - 서로의 라벨과 LLM 결과를 보지 않는다.
    - LLM과 같은 조건이 되도록 링크를 열어 원문을 읽지 않고, 파일에 있는 제목·본문 앞부분만으로 판단한다.
    - 판단이 애매하면 `note` 에 이유를 적는다.
-3. **합의:** 두 라벨이 같으면 그대로, 다르면 둘이 논의해 `label_final` 을 정한다. 합의가 어려운 사례는 `note` 에 남기고, 라벨 정의를 고칠 필요가 있으면 [AI_CLASSIFICATION](AI_CLASSIFICATION.md) 을 고친 뒤 프롬프트 버전을 올린다.
-4. **LLM 라벨링:** `python analysis/label_sentiment.py --sample` 로 표본 180건을 먼저 분류하고(약 $1), 정확도를 확인한 뒤 `--all` 로 전체 4,727건을 분류한다(약 $31). 결과는 `data/processed/sentiment_llm.csv` (형식·설정은 [AI_CLASSIFICATION](AI_CLASSIFICATION.md) 2-5-1·2-6절). 검수자는 LLM 결과 파일을 열어 보지 않는다.
-5. **집계:** `python analysis/eval_sentiment.py` → `data/eval/sentiment_eval_result.md`
-6. **기록:** 결과를 이 문서 4절에 옮기고, 오분류를 보고 프롬프트를 고쳤다면 버전별로 다시 집계해 비교한다.
+3. **합치기:** `python analysis/merge_annotations.py` 가 평가자 파일을 `data/eval/sentiment_sample.csv` 하나로 합친다. 평가자별 라벨, `majority_label`(과반 라벨, 과반이 없으면 빈칸), `agreement`(만장일치 / 다수 / 불일치 / 미완료) 가 붙는다. 다시 실행해도 이미 채운 `label_final`·`note` 는 보존된다. 평가자 원본 파일은 수정하지 않는다.
+4. **합의:** 합친 파일에서 `label_final` 을 채운다. 만장일치 행은 그 라벨, `다수`·`불일치` 행은 평가자들이 논의해 정한다. 합의가 어려운 사례는 `note` 에 남기고, 라벨 정의를 고칠 필요가 있으면 [AI_CLASSIFICATION](AI_CLASSIFICATION.md) 을 고친 뒤 프롬프트 버전을 올린다.
+5. **LLM 라벨링:** `python analysis/label_sentiment.py --sample` 로 표본 180건을 먼저 분류하고(약 $1), 정확도를 확인한 뒤 `--all` 로 전체 4,727건을 분류한다(약 $31). 결과는 `data/processed/sentiment_llm.csv` (형식·설정은 [AI_CLASSIFICATION](AI_CLASSIFICATION.md) 2-5-1·2-6절). 검수자는 LLM 결과 파일을 열어 보지 않는다.
+6. **집계:** `python analysis/eval_sentiment.py` → `data/eval/sentiment_eval_result.md`
+7. **기록:** 결과를 이 문서 4절에 옮기고, 오분류를 보고 프롬프트를 고쳤다면 버전별로 다시 집계해 비교한다.
 
 | 지표 | 의미 |
 |---|---|
-| 검수자 간 일치율, Cohen's kappa | 정답 자체가 믿을 만한가. kappa 0.6 이상이면 대체로 일치, 0.8 이상이면 높은 일치로 본다 |
+| 검수자 간 일치율, Cohen's kappa(쌍별), Fleiss' kappa(3명 이상) | 정답 자체가 믿을 만한가. kappa 0.2~0.4는 낮은 일치, 0.4~0.6 보통, 0.6 이상이면 대체로 일치, 0.8 이상이면 높은 일치로 본다 |
 | 정확도 | LLM 라벨이 정답과 같은 비율 |
 | 라벨별 정밀도·재현율·F1 | 어느 라벨을 잘못 붙이는가 (예: 중립을 기회로 과다 분류) |
 | 혼동행렬 | 어떤 라벨끼리 헷갈리는가 |
@@ -73,12 +74,34 @@
 
 > 검수와 LLM 라벨링이 끝나면 `data/eval/sentiment_eval_result.md` 의 내용을 옮긴다.
 
+### 4-1. 검수자 간 일치도 (합의 전, 2026-11-16)
+
+평가자 A(10010197), B(hanju), C(kevin110419)가 표본 180건을 각자 라벨링했다.
+
+| 평가자 쌍 | 일치율 | Cohen's kappa |
+|---|---|---|
+| A · B | 73.9% | 0.484 |
+| A · C | 52.2% | 0.299 |
+| B · C | 55.6% | 0.335 |
+
+- 3명: 만장일치 78건(43.3%) · 다수 93건 · 불일치 9건, **Fleiss' kappa 0.337** (낮은 일치)
+
+| 평가자 | 기회 | 위험 | 중립 |
+|---|---|---|---|
+| A | 124 | 23 | 33 |
+| B | 113 | 21 | 46 |
+| C | 53 | 44 | 83 |
+
+**해석:** A·B는 보통 수준으로 일치하지만, C는 "기회" 대신 "중립"·"위험"을 훨씬 많이 붙였다. 라벨 기준 해석(직접적 수혜가 아니면 중립인가, 경쟁 심화는 위험인가 등)이 평가자마다 다른 것으로 보인다. 합의 단계에서 이 차이를 먼저 정리하고, 정리한 기준은 [AI_CLASSIFICATION](AI_CLASSIFICATION.md) 2-3절에 반영한다.
+
+### 4-2. LLM 정확도
+
 | 항목 | 값 |
 |---|---|
-| 검수자 | (GitHub 닉네임 2명) |
-| 검수일 | |
+| 검수자 | 10010197, hanju, kevin110419 |
+| 검수일 | 2026-11-16 (개별 라벨링), 합의일: |
 | 모델 · 프롬프트 버전 | · sentiment-v1 |
-| 검수자 간 일치율 / kappa | / |
+| 검수자 간 일치도 | 4-1절 (Fleiss' kappa 0.337) |
 | **LLM 정확도** (표본 단순) | |
 | LLM 정확도 (층 가중) | |
 | 본문 / 제목·한국어 / 제목·영어 정확도 | / / |

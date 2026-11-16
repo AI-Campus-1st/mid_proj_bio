@@ -39,6 +39,17 @@ def kappa(a: list, b: list) -> float:
     return (po - pe) / (1 - pe) if pe < 1 else 1.0
 
 
+def fleiss(rows: list, cols: list) -> float:
+    """Fleiss' kappa (평가자 3명 이상일 때의 일치도). 모든 평가자가 라벨을 단 행만 넣는다."""
+    n, m = len(rows), len(cols)
+    counts = [Counter(r[c] for c in cols) for r in rows]
+    p_i = [(sum(v * v for v in c.values()) - m) / (m * (m - 1)) for c in counts]
+    p_bar = sum(p_i) / n
+    p_j = {k: sum(c[k] for c in counts) / (n * m) for k in LABELS}
+    pe = sum(v * v for v in p_j.values())
+    return (p_bar - pe) / (1 - pe) if pe < 1 else 1.0
+
+
 def prf(gold: list, pred: list) -> dict:
     out = {}
     for k in LABELS:
@@ -69,15 +80,30 @@ def main():
              "", f"- 생성: {datetime.now(KST):%Y-%m-%d %H:%M} (KST)",
              f"- 표본 {len(sample)}건 중 정답(label_final) 확정 {len(done)}건", ""]
 
-    # 1. 검수자 간 일치도
-    both = [r for r in sample if r["annotator_a"] in LABELS and r["annotator_b"] in LABELS]
-    lines += ["## 1. 검수자 간 일치도", ""]
-    if both:
-        a, b = [r["annotator_a"] for r in both], [r["annotator_b"] for r in both]
-        agree = sum(x == y for x, y in zip(a, b)) / len(both)
-        lines += [f"- 두 검수자가 모두 라벨링한 {len(both)}건: 일치율 {pct(agree)}, Cohen's kappa {kappa(a, b):.3f}", ""]
+    # 1. 검수자 간 일치도 — annotator_* 열을 모두 평가자로 본다
+    ann = [c for c in sample[0] if c.startswith("annotator_")]
+    lines += ["## 1. 검수자 간 일치도", "", f"- 평가자 {len(ann)}명: {', '.join(ann)}", ""]
+    if len(ann) >= 2:
+        lines += ["| 평가자 쌍 | 비교 건수 | 일치율 | Cohen's kappa |", "|---|---|---|---|"]
+        for i, x in enumerate(ann):
+            for y in ann[i + 1:]:
+                both = [r for r in sample if r[x] in LABELS and r[y] in LABELS]
+                if both:
+                    a, b = [r[x] for r in both], [r[y] for r in both]
+                    agree = sum(p == q for p, q in zip(a, b)) / len(both)
+                    lines.append(f"| {x} · {y} | {len(both)} | {pct(agree)} | {kappa(a, b):.3f} |")
+        full = [r for r in sample if all(r[c] in LABELS for c in ann)]
+        if len(ann) >= 3 and full:
+            unanimous = sum(len({r[c] for c in ann}) == 1 for r in full) / len(full)
+            lines += ["", f"- 전원 라벨링한 {len(full)}건: 만장일치 {pct(unanimous)}, Fleiss' kappa {fleiss(full, ann):.3f}"]
+        lines.append("")
+        dist = ["| 평가자 | " + " | ".join(LABELS) + " |", "|---" * (len(LABELS) + 1) + "|"]
+        for c in ann:
+            cnt = Counter(r[c] for r in sample if r[c] in LABELS)
+            dist.append(f"| {c} | " + " | ".join(str(cnt[k]) for k in LABELS) + " |")
+        lines += ["**평가자별 라벨 분포**", ""] + dist + [""]
     else:
-        lines += ["- 두 검수자 라벨이 아직 없습니다.", ""]
+        lines += ["- 평가자가 2명 이상이어야 일치도를 계산합니다.", ""]
 
     # 2. LLM 정확도
     lines += ["## 2. LLM 정확도", ""]
