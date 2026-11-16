@@ -107,12 +107,6 @@ python collect/collect_news_cdmo.py
 python collect/collect_news_global.py
 ```
 
-5-1. 해외(영어) 뉴스 본문 수집 — 구글 뉴스 링크를 원문 URL로 바꾸고 본문을 추출 (`data/raw/news_global/_bodies.jsonl`, 이어받기 가능. 실패 건은 `--retry` 로 재시도, `--limit N` 으로 일부만 실행)
-
-```bash
-python collect/collect_news_global_body.py
-```
-
 6. 뉴스 통합본 생성 — 제공·팀원 수집(`data/raw/cdmo_*.csv`)·구글 뉴스 수집분(해외 포함)을 합치고 CDMO 키워드로 재분류 (`03_CDMO_news_3y/`, 설명은 `docs/news_sort.md`)
 
 ```bash

@@ -181,3 +181,23 @@
 | `hanju.md` | 수정 | 빈 파일 | 이 세션 기록 |
 
 - **비고**: 통합본(`03_CDMO_news_3y/`)과 DB 는 아직 다시 만들지 않음 → `build_cdmo_news.py` → `db/build_db.py` 재실행 필요(영어 기사 466건에 본문이 생겨 분류 결과가 바뀔 수 있음). 크롤링한 기사 본문의 저작권은 언론사에 있으므로 LLM 입력·공개 범위는 과제 기준 확인 필요. push 하지 않음(원격 main 에 `e2e09f2` 가 있어 pull 후 push).
+
+## 2026-11-16 — 뉴스 본문 수집 되돌림 (제목 기반 분류로 전환)
+
+- **브랜치**: `main`
+- **버전**: 기준 `ba50d61` → 결과 (이 커밋)
+- **요청 내용**: LLM 분류를 기사 제목만으로 하기로 해서 본문 수집을 쓰지 않음. 영어 본문 추가분을 원래 상태로 되돌리고 커밋
+- **진행 사항**: `git revert --no-commit ba50d61` 로 영어 본문 수집 커밋의 코드·데이터를 되돌림. `hanju.md` 의 기존 기록은 규칙에 따라 유지. 커밋하지 않았던 한국어 본문 수집 코드(`collect_news_google_body.py`, `build_cdmo_news.py` 수정분, README 5-1-2)와 10건 테스트 결과(`data/raw/news_body_ko/`)는 삭제
+
+### 원본 대비 변경사항
+
+`git diff --cached --stat`: 4 files changed, 3 insertions(+), 1081 deletions(-)
+
+| 파일 | 구분 | 원본 (`ba50d61`) | 변경 후 (`13efd42` 와 동일) |
+|------|------|------|---------|
+| `collect/collect_news_global_body.py` | 삭제 | 영어 기사 본문 수집 코드 | (없음) |
+| `data/raw/news_global/_bodies.jsonl` | 삭제 | 811줄 / 803 guid, 본문 성공 466건 | (없음) |
+| `analysis/build_cdmo_news.py` | 수정 | `load_global_bodies()` 로 해외검색 본문·원문 URL 채움 | 해외검색 `body=None` (원래대로) |
+| `README.md` | 수정 | 5-1 영어 본문 수집 단계 있음 | 5-1 단계 제거 |
+
+- **비고**: 통합본·DB 는 본문 반영 전 상태라 재생성 불필요. 검수 표본 추출 코드 `analysis/sample_review.py`(영어 50 + 한국어 50 제목, 기회/위험/중립 드롭다운 엑셀 `data/processed/review_sample/분류표본_영어50_한국어50.xlsx`)는 이 커밋에 넣지 않음. push 하지 않음(원격 main 에 `e2e09f2`, `51a648b` 가 있어 pull 후 push).
