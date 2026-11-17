@@ -255,3 +255,19 @@
 | `docs/masterplan.md` | 수정 | 3-2 표 NEWS_DISCLOSURE_MATCHING 상태 `📝` | `🔶 초안(설계 제안), 구현·검증 전` |
 
 - **비고**: 구현·실행·검증 없음. 이 PC에 `data/db/bio_cdmo.sqlite`, 공시 원문, `.env` 가 없어 수치는 `docs/data_schema.md` 4절(2026-11-16 빌드)과 `eda_disclosure_class.csv` 에서 가져옴. 팀 결정 필요: 임베딩 모델·답변 LLM(D1·D2), 질의 시점 LLM 호출의 PRD N1 해석(D4). 첨부 파일 수 약 27개는 추정(D10). 이슈 단위 매칭은 T2(이슈 추출) 설계 대기. 커밋·push 하지 않음.
+
+## 2026-11-17 — Day 5 설계 확정 반영 (팀 결정)
+
+- **브랜치**: `main`
+- **버전**: 기준 `20fd098` (앞 항목의 NEWS_DISCLOSURE_MATCHING 초안은 `9a75fa6` 으로 커밋·push 됨)
+- **요청 내용**: 팀이 설계 제안을 제안대로 하기로 함 → 문서에 반영
+- **진행 사항**: NEWS_DISCLOSURE_MATCHING 7절의 결정 항목을 확정으로 변경
+
+### 원본 대비 변경사항
+
+| 파일 | 구분 | 원본 | 변경 후 |
+|------|------|------|---------|
+| `docs/04_ai/NEWS_DISCLOSURE_MATCHING.md` | 수정 | 상태 "초안 — 설계 제안". D1·D2·D4 "팀 결정/확인 필요", D3 "비용 추정 후 확정", D8 "T2 설계 대기" | 상태 "설계 확정(팀 합의 2026-11-17), 구현·검증 전". D1~D4·D8 **확정**. 4-1·4-3·4-6절의 "결정 필요" 문구를 결정 내용으로 변경. D5~D7(시점 창·청크·임계값)은 가설 유지 |
+| `docs/masterplan.md` | 수정 | 3-2 표: NEWS_DISCLOSURE_MATCHING `🔶 초안` | `🔶 설계 확정(팀 합의 2026-11-17), 구현·검증 전` |
+
+- **비고**: D4(PRD N1 해석)는 팀 해석이며 강사 확인은 하지 않음. `requirements.txt` 의 `langchain-openai` 추가는 구현 시점으로 미룸. DECISIONS.md 는 작성 전이라 옮기지 않음. 역할 분담(TASKS.md)은 로컬 초안만 있고 커밋하지 않음.

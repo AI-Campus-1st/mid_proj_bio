@@ -42,7 +42,7 @@
 | 저장·처리 | SQLite, `pandas`, `numpy`, `SQLAlchemy` |
 | EDA·시계열 | `statsmodels`, `ruptures`(변화점 탐지), `scikit-learn`, `kiwipiepy`(한국어 형태소 분석) |
 | 시각화 | `matplotlib`, `seaborn`, `plotly` |
-| LLM·RAG | `anthropic`(Claude), `langchain`, `chromadb` |
+| LLM·RAG | `openai`(감성 분류·RAG), `langchain`, `chromadb` |
 | 대시보드 | `streamlit` |
 
 ## 준비
@@ -68,7 +68,7 @@ pip install -r requirements.txt
 
 ```
 DART_OPEN_API=발급받은_DART_인증키
-ANTHROPIC_API_KEY=발급받은_Anthropic_API_키
+OPENAI_API_KEY=발급받은_OpenAI_API_키
 ```
 
 ## 실행 순서 — 통합 DB 구축
