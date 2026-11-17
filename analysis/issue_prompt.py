@@ -125,8 +125,12 @@ def parse_response(text: str) -> dict:
     lo, hi = KEYWORDS_RANGE
     if not lo <= len(clean) <= hi:
         raise ValueError(f"keywords 는 {lo}~{hi}개여야 함: {clean}")
-    if any(len(k) > KEYWORD_MAX for k in clean):
-        raise ValueError(f"keyword 가 {KEYWORD_MAX}자를 넘음: {clean}")
+    # 길이 제한을 넘는 키워드(긴 행사·기관 이름 등)는 그 키워드만 버린다. 하나 때문에 기사 전체를
+    # 실패로 처리하지 않는다. 남는 키워드가 없을 때만 실패다.
+    short = [k for k in clean if len(k) <= KEYWORD_MAX]
+    if not short:
+        raise ValueError(f"keyword 가 모두 {KEYWORD_MAX}자를 넘음: {clean}")
+    clean = short
     if any(";" in k for k in clean):
         raise ValueError(f"keyword 에 ';' 가 있음: {clean}")
     return {"issue": issue, "issue_type": d["issue_type"], "keywords": "; ".join(clean),
