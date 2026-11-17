@@ -100,22 +100,23 @@ PRD **F5 뉴스-DART 공시 연계 및 AI 분석**(SQ4 "뉴스에 나온 변화�
 
 ### 3-5. 정렬과 산출물
 
-한 기사에 연결된 공시는 직접 창 → 후속 창, 그 안에서 `event_weight` 높은 순 → 날짜가 가까운 순으로 정렬한다.
+한 기사에 연결된 공시는 직접 창 → 후속 창, 그 안에서 **분류별 가중치**(`class_weight`) 높은 순 → 날짜가 가까운 순으로 정렬한다. 행의 `event_weight` 는 정정 공시이면 0이라, 그대로 쓰면 최신 내용이 담긴 정정 공시가 모두 뒤로 밀린다. 그래서 `analysis/disclosure_weights.py` 의 분류별 값(수주 5, 증설 4, M&A·구조개편 4, 실적 3, 임상·허가·기술계약 2, 자금조달 2, 리스크 0)을 쓴다.
 
 결과는 미리 계산해 파일로 저장한다 (PRD N2). `news_id` 는 빌드마다 바뀔 수 있으므로 뉴스 키는 `url` 을 쓴다.
 
-`data/processed/news_disclosure_links.csv` (제안)
+`data/processed/news_disclosure_links.csv` — `analysis/match_news_disclosure.py` 가 만든다 (기사 × 기업 × 공시 = 1행)
 
 | 컬럼 | 설명 |
 |---|---|
-| `url` | 뉴스 키 |
-| `corp_code` | 기업 |
-| `rcept_no` | 공시 키 |
+| `url`, `published_date` | 뉴스 키, 발행일 |
+| `corp_code`, `corp_name` | 기업 |
+| `rcept_no`, `rcept_date`, `report_nm` | 공시 키, 접수일, 보고서명 |
 | `window` | `direct` / `follow` |
 | `day_gap` | 공시 접수일 − 기사 발행일 (일) |
-| `news_keyword` | 연결 근거가 된 CDMO 키워드 |
-| `event_class`, `event_weight`, `is_amended` | 공시 속성 |
+| `news_keyword` | 연결 근거가 된 CDMO 키워드 (여러 개면 `; ` 로 구분, 리스크 공시는 빈 값) |
+| `event_class`, `class_weight`, `is_amended` | 공시 속성 |
 | `kw_low_confidence` | `cdmo_kw_basis='query'` 이면 1 |
+| `follow_cut` | 기사 발행일이 수집 기간 끝(2026-10-19)에서 90일 이내라 후속 창이 잘리면 1. "후속 공시 없음"이 아니라 "아직 알 수 없음"으로 읽는다 |
 
 ### 3-6. 이슈 단위로 올리기
 
@@ -281,7 +282,7 @@ D1~D4·D8은 2026-11-17 팀 합의로 제안대로 확정했다. D5~D7은 제안
 | D9 | 원공시–정정 공시 연결 키 | 필요해지면 정의 | 미확인 |
 | D10 | 첨부 파일 수(약 27개 추정)와 종류 | DB에서 `seq ≥ 2` 집계로 확인 | 미확인 |
 
-구현 파일(제안): `analysis/match_news_disclosure.py` (M1), `rag/build_index.py` (청킹·임베딩·색인), `rag/qa.py` (검색·답변·검증). 실행 순서는 구현 후 README와 [DATA_PIPELINE](../03_data/DATA_PIPELINE.md)에 적는다.
+구현 파일: `analysis/match_news_disclosure.py` (M1, 작성 완료 — 가짜 DB로 규칙만 검증, 실제 DB 실행 전). 제안: `rag/build_index.py` (청킹·임베딩·색인), `rag/qa.py` (검색·답변·검증). 실행 순서는 구현 후 README와 [DATA_PIPELINE](../03_data/DATA_PIPELINE.md)에 적는다.
 
 ---
 

@@ -270,4 +270,20 @@
 | `docs/04_ai/NEWS_DISCLOSURE_MATCHING.md` | 수정 | 상태 "초안 — 설계 제안". D1·D2·D4 "팀 결정/확인 필요", D3 "비용 추정 후 확정", D8 "T2 설계 대기" | 상태 "설계 확정(팀 합의 2026-11-17), 구현·검증 전". D1~D4·D8 **확정**. 4-1·4-3·4-6절의 "결정 필요" 문구를 결정 내용으로 변경. D5~D7(시점 창·청크·임계값)은 가설 유지 |
 | `docs/masterplan.md` | 수정 | 3-2 표: NEWS_DISCLOSURE_MATCHING `🔶 초안` | `🔶 설계 확정(팀 합의 2026-11-17), 구현·검증 전` |
 
-- **비고**: D4(PRD N1 해석)는 팀 해석이며 강사 확인은 하지 않음. `requirements.txt` 의 `langchain-openai` 추가는 구현 시점으로 미룸. DECISIONS.md 는 작성 전이라 옮기지 않음. 역할 분담(TASKS.md)은 로컬 초안만 있고 커밋하지 않음.
+- **비고**: D4(PRD N1 해석)는 팀 해석이며 강사 확인은 하지 않음. `requirements.txt` 의 `langchain-openai` 추가는 구현 시점으로 미룸. DECISIONS.md 는 작성 전이라 옮기지 않음.
+
+## 2026-11-17 — 뉴스-공시 매칭 스크립트 작성 (M1)
+
+- **브랜치**: `main`
+- **버전**: 기준 `1938c08` → 미커밋
+- **요청 내용**: NEWS_DISCLOSURE_MATCHING 3절의 매칭 규칙을 코드로 구현
+- **진행 사항**: `analysis/match_news_disclosure.py` 작성. 같은 기업(title·body) + 시점 창(direct −7~+7일, follow +8~+90일) + CDMO 키워드 ↔ event_class 대응으로 기사와 사건성 공시 7종을 연결해 `data/processed/news_disclosure_links.csv` 로 저장. 리스크 공시는 direct 창이면 키워드와 무관하게 연결. 실행 요약(연결 쌍 수, 연결 없는 기사 비율, 창 × 분류, 기업 × 창) 출력
+
+### 원본 대비 변경사항
+
+| 파일 | 구분 | 원본 | 변경 후 |
+|------|------|------|---------|
+| `analysis/match_news_disclosure.py` | 추가 | (없음) | 매칭 스크립트. 설정 상수(창 일수, `TOPIC_MAP`, `CLASS_WEIGHT`), `window_of`·`topic_ok`·`load`·`match`·`summarize` |
+| `docs/04_ai/NEWS_DISCLOSURE_MATCHING.md` | 수정 | 3-5절: `event_weight` 높은 순 정렬, 산출물 컬럼 10개(제안) | 정렬을 분류별 가중치(`class_weight`)로 변경(정정 공시는 `event_weight`=0이라 뒤로 밀리는 문제), 컬럼에 `published_date`·`corp_name`·`rcept_date`·`report_nm`·`follow_cut` 추가, 7절 구현 파일 상태 갱신 |
+
+- **비고**: 이 PC에 DB가 없어 **실제 데이터로는 실행하지 않음**. `db/schema.sql` 로 만든 메모리 DB에 가짜 기사 7건·공시 16건을 넣어 규칙만 검증(창 경계 −8/−7/+7/+8/+90/+91일, 주제 대응, 리스크, 정정, 중복·query 제외, 키워드 합치기, 정렬, `follow_cut` 경계) — 통과. 시점 창 일수는 검증 전 가설. README 실행 순서에는 아직 추가하지 않음. 커밋하지 않음.
