@@ -1,0 +1,14 @@
+{
+ "20250528000081": {
+  "status": "014",
+  "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><result><status>014</status><message>파일이 존재하지 않습니다.</message></result>"
+ },
+ "20240604800502": {
+  "status": "014",
+  "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><result><status>014</status><message>파일이 존재하지 않습니다.</message></result>"
+ },
+ "20251211000318": {
+  "status": "014",
+  "body": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><result><status>014</status><message>파일이 존재하지 않습니다.</message></result>"
+ }
+}
