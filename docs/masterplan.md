@@ -1,6 +1,6 @@
 # Masterplan — 바이오 CDMO 산업 이슈 대시보드
 
-> **최종 갱신:** 2026-11-16
+> **최종 갱신:** 2026-11-17
 > 이 문서는 프로젝트 문서 전체의 지도이다. 무엇을 만들고, 어디까지 왔고, 어떤 문서가 어디에 있는지 여기서 시작한다.
 
 ---
@@ -75,9 +75,9 @@ docs/
 | | [AI_CLASSIFICATION](04_ai/AI_CLASSIFICATION.md) | 감성·이슈·모달리티·번역 프롬프트와 출력 형식 | 🔶 감성 분류 완료, 나머지 작성 전 |
 | | [NEWS_DISCLOSURE_MATCHING](04_ai/NEWS_DISCLOSURE_MATCHING.md) | 뉴스-공시 매칭 규칙, 공시 RAG 구성 | 🔶 설계 확정(팀 합의 2026-11-17), 구현·검증 전 |
 | | [AI_EVALUATION](04_ai/AI_EVALUATION.md) | 표본 검수 방법과 정확도 기록 (과제 필수) | 🔶 감성 분류 표본·절차 완료, 결과 기록 대기 |
-| **05 design** | [INFORMATION_ARCHITECTURE](05_design/INFORMATION_ARCHITECTURE.md) | 화면 목록·계층·필터 위치 | 📝 |
+| **05 design** | [INFORMATION_ARCHITECTURE](05_design/INFORMATION_ARCHITECTURE.md) | 화면 목록·계층·필터 위치·이동 경로 | 🔶 초안(2026-11-17) — 결정 필요 U1~U5 팀 확인 전 |
 | | [USER_FLOW](05_design/USER_FLOW.md) | 시나리오별 화면 이동 흐름 | 📝 |
-| | [WIREFRAME](05_design/WIREFRAME.md) | 화면별 배치 | 📝 |
+| | [WIREFRAME](05_design/WIREFRAME.md) | 화면별 배치 | 🔶 초안(2026-11-17) — S0~S6 배치·상태 표시 |
 | | [UI_SPECIFICATION](05_design/UI_SPECIFICATION.md) | 컴포넌트 동작·표시 규칙 | 📝 |
 | **06 technical** | [SYSTEM_ARCHITECTURE](06_technical/SYSTEM_ARCHITECTURE.md) | 계층 구조, 구성 요소, 실행 환경 | 📝 |
 | | [API_SPECIFICATION](06_technical/API_SPECIFICATION.md) | 외부 API, 내부 조회 인터페이스, RAG 입출력 | 📝 |
