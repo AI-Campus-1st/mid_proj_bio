@@ -1,6 +1,6 @@
 # 와이어프레임
 
-> **상태:** 초안 — 화면 S0~S6 배치와 공통 상태(빈 상태·로딩·거절) 작성. 위젯 세부 동작·색상은 [UI_SPECIFICATION](UI_SPECIFICATION.md)(작성 전) · **최종 갱신:** 2026-11-17
+> **상태:** 초안 — 화면 S0~S6 배치와 공통 상태(빈 상태·로딩·거절) 작성. 위젯 세부 동작·색상은 [UI_SPECIFICATION](UI_SPECIFICATION.md)(초안) · **최종 갱신:** 2026-11-17
 > **원본:** 없음 (새로 작성). 근거: [PRD](../02_product-requirements/PRD.md) 2절 각 기능의 "화면 구성", [ACCEPTANCE_CRITERIA](../02_product-requirements/ACCEPTANCE_CRITERIA.md), [NEWS_DISCLOSURE_MATCHING](../04_ai/NEWS_DISCLOSURE_MATCHING.md) 4·5절
 > **관련 문서:** [masterplan](../masterplan.md) · [INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md) · [UI_SPECIFICATION](UI_SPECIFICATION.md)
 

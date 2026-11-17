@@ -78,7 +78,7 @@ docs/
 | **05 design** | [INFORMATION_ARCHITECTURE](05_design/INFORMATION_ARCHITECTURE.md) | 화면 목록·계층·필터 위치·이동 경로 | 🔶 초안(2026-11-17) — 결정 필요 U1~U5 팀 확인 전 |
 | | [USER_FLOW](05_design/USER_FLOW.md) | 시나리오별 화면 이동 흐름 | 📝 |
 | | [WIREFRAME](05_design/WIREFRAME.md) | 화면별 배치 | 🔶 초안(2026-11-17) — S0~S6 배치·상태 표시 |
-| | [UI_SPECIFICATION](05_design/UI_SPECIFICATION.md) | 컴포넌트 동작·표시 규칙 | 📝 |
+| | [UI_SPECIFICATION](05_design/UI_SPECIFICATION.md) | 컴포넌트 동작·표시 규칙 | 🔶 초안(2026-11-17) — 디자인 토큰·테마, 공통 컴포넌트, 필터, S0~S6 컴포넌트, 표시 규칙·문구, AC 추적. U1~U5·미결 Q1~Q18 팀 확인 전 |
 | **06 technical** | [SYSTEM_ARCHITECTURE](06_technical/SYSTEM_ARCHITECTURE.md) | 계층 구조, 구성 요소, 실행 환경 | 📝 |
 | | [API_SPECIFICATION](06_technical/API_SPECIFICATION.md) | 외부 API, 내부 조회 인터페이스, RAG 입출력 | 📝 |
 | | [DATABASE_SCHEMA](06_technical/DATABASE_SCHEMA.md) | 통합 DB 스키마 공식 문서 | 📝 |
@@ -114,7 +114,7 @@ PRODUCT_BRIEF ─┬─ PRODUCT_VISION ── (Core Question, 핵심 질문)
 5. **수치는 출처와 함께:** 건수·비율에는 산출 기준(스크립트, 빌드 일자)을 적는다. 데이터가 바뀌면 수치를 갱신한다.
 6. **식별자 유지:** F·US·AC 등 번호는 바꾸지 않는다. 삭제하면 "폐기"로 남기고 새 번호를 붙인다.
 7. **작업 기록:** 문서를 바꾼 Claude Code 세션은 `CLAUDE.md` 규칙에 따라 루트의 `<GitHub 닉네임>.md` 에 기록한다.
-8. **브랜치:** `main` 단일 브랜치로 운영한다. 문서 작업도 `main` 에서 `feature/<이름>` 브랜치를 만들어 `main` 으로 Pull Request한다 (README "브랜치 전략").
+8. **브랜치:** `main` 단일 브랜치로 운영한다. 문서 작업도 `main` 에서 `feature/<이름>` 브랜치를 만들어 작업하고, 끝나면 `main` 에 직접 merge한다. Pull Request는 거치지 않는다 — 변경 사항은 오프라인에서 실시간으로 협의한다 (2026-11-17 팀 결정).
 
 ---
 
