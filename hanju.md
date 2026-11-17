@@ -287,3 +287,22 @@
 | `docs/04_ai/NEWS_DISCLOSURE_MATCHING.md` | 수정 | 3-5절: `event_weight` 높은 순 정렬, 산출물 컬럼 10개(제안) | 정렬을 분류별 가중치(`class_weight`)로 변경(정정 공시는 `event_weight`=0이라 뒤로 밀리는 문제), 컬럼에 `published_date`·`corp_name`·`rcept_date`·`report_nm`·`follow_cut` 추가, 7절 구현 파일 상태 갱신 |
 
 - **비고**: 이 PC에 DB가 없어 **실제 데이터로는 실행하지 않음**. `db/schema.sql` 로 만든 메모리 DB에 가짜 기사 7건·공시 16건을 넣어 규칙만 검증(창 경계 −8/−7/+7/+8/+90/+91일, 주제 대응, 리스크, 정정, 중복·query 제외, 키워드 합치기, 정렬, `follow_cut` 경계) — 통과. 시점 창 일수는 검증 전 가설. README 실행 순서에는 아직 추가하지 않음. 커밋하지 않음.
+
+## 2026-11-17 — 이슈 키워드 추출(T2) 코드 작성과 전체 실행
+
+- **브랜치**: `main`
+- **버전**: 기준 `e8a0253`
+- **요청 내용**: Day 4의 이슈 키워드 추출 코드 작성, 전체 기사에 실행, 같은 사건의 이슈 이름 묶기
+- **진행 사항**: (1) `analysis/issue_prompt.py`·`analysis/extract_issues.py` — 기사마다 이슈 이름(30자 이내 "주체 + 사건")·이슈 유형 8종·핵심 키워드 1~3개·확신도를 LLM으로 추출. 대상(4,727건)·모델(`gpt-6-luna`, effort low)·호출 방식·이어받기는 `label_sentiment.py` 와 같음. (2) 전체 실행 → `data/processed/issues_llm.csv`. (3) `analysis/group_issues.py` — 이슈 이름 목록만 LLM에 넣어 같은 사건의 이름을 대표 이름(`issue_group`)으로 통일. 표본으로만 실행
+
+### 원본 대비 변경사항
+
+| 파일 | 구분 | 원본 | 변경 후 |
+|------|------|------|---------|
+| `analysis/issue_prompt.py` | 추가 | (없음) | 프롬프트 `issue-v1`, 출력 스키마, `build_user_prompt`·`parse_response`·`normalize_issue` |
+| `analysis/extract_issues.py` | 추가 | (없음) | 추출 실행 스크립트 (`--sample`/`--all`/`--summary`/`--dry-run`) |
+| `analysis/group_issues.py` | 추가 | (없음) | 이슈 이름 묶기 스크립트 (`issue-group-v1`, effort medium) → `data/processed/issue_groups.csv` |
+| `data/processed/issues_llm.csv` | 추가 | (없음) | 4,727행 · url, issue, issue_norm, issue_type, keywords, confidence, input_basis, model, prompt_version, extracted_at, error |
+
+- **결과 수치** (2026-11-17 실행): 성공 4,723건, 실패 4건(키워드 15자 초과 — 전시회 이름). 확신도 high 3,759 / medium 828 / low 136. 입력 근거 제목만 3,503 / 본문 1,220. 이슈 유형 기타 1,317 · M&A·진출 754 · 증설·투자 744 · 정책·규제 567 · 수주·계약 558 · 기술·모달리티 343 · 실적 266 · 품질·실사 174. 서로 다른 이슈 이름 3,579개(기사 1건뿐인 이름 3,301개)
+- **비고**: 이슈 묶기는 표본 180건의 이름 163개로만 실행(154개로 합쳐짐, 합쳐진 8건은 눈으로 확인). **전체 3,579개 이름은 아직 묶지 않아** `issue_groups.csv` 는 커밋하지 않음. 이슈 추출의 사람 검수는 하지 않음(미검수). 설계는 `AI_CLASSIFICATION.md` 3절에 아직 적지 않음. OpenAI 키는 프로젝트 `.env` 가 없어 다른 폴더의 키를 실행 시점에 환경변수로 넣어 사용. 공시 색인 코드(`rag/build_index.py`)도 초안을 만들었으나 10010197의 PR #16(색인·QA·평가)이 먼저 병합되어 내 초안은 올리지 않음.
