@@ -239,3 +239,19 @@
 | `data/eval/sentiment_sample_b.csv` | 추가 | (없음) | `sentiment_sample.csv` 와 같은 180행 × 16열, `annotator_b` 만 채움: 기회 113 · 중립 46 · 위험 21. `annotator_a`·`label_final`·`note` 는 빈칸 |
 
 - **비고**: 공유 저장소에 올라가 A 담당이 라벨링 전에 B 답을 볼 수 있음(사용자 확인 후 진행). A 라벨이 끝나면 A 파일에 `annotator_b` 를 붙여 `label_final` 합의 후 `sentiment_sample.csv` 를 교체해야 함. 엑셀에 열려 있던 `sentiment_sample_b.csv.txt` 와 `data/processed/review_sample/` 엑셀은 잠겨 있어 지우지 못함(커밋 안 함).
+
+## 2026-11-17 — NEWS_DISCLOSURE_MATCHING 초안 작성 (Day 5 설계)
+
+- **브랜치**: `main`
+- **버전**: 기준 `27b9462` → 미커밋
+- **요청 내용**: Day 5(RAG 공시 Q&A) 작업 전 설계 문서 `NEWS_DISCLOSURE_MATCHING.md` 작성
+- **진행 사항**: 작성 가이드 주석을 따라 뉴스-공시 매칭 규칙(M1)과 공시 RAG 구성(M2)을 설계 제안으로 작성. 수치 기준(시점 창, 청크 크기, 검색 건수)은 모두 가설로 표시. masterplan 3-2 표의 상태 갱신
+
+### 원본 대비 변경사항
+
+| 파일 | 구분 | 원본 | 변경 후 |
+|------|------|------|---------|
+| `docs/04_ai/NEWS_DISCLOSURE_MATCHING.md` | 수정 | "작성 전" + 작성 가이드 주석 (28줄) | 초안 8개 절: 범위(F5, US-14~17), 대상 데이터, M1 매칭 규칙(기업·시점 창 ±7일/+90일·CDMO 키워드 ↔ event_class 대응·정정 공시·산출물), M2 RAG(청킹 1,000자/겹침 150자·chromadb 메타데이터·검색·답변 JSON·거절 기준 5단계·근거 표시), 시나리오 Q1~Q7(미실행), 평가 계획, 결정 필요 D1~D10, 한계 |
+| `docs/masterplan.md` | 수정 | 3-2 표 NEWS_DISCLOSURE_MATCHING 상태 `📝` | `🔶 초안(설계 제안), 구현·검증 전` |
+
+- **비고**: 구현·실행·검증 없음. 이 PC에 `data/db/bio_cdmo.sqlite`, 공시 원문, `.env` 가 없어 수치는 `docs/data_schema.md` 4절(2026-11-16 빌드)과 `eda_disclosure_class.csv` 에서 가져옴. 팀 결정 필요: 임베딩 모델·답변 LLM(D1·D2), 질의 시점 LLM 호출의 PRD N1 해석(D4). 첨부 파일 수 약 27개는 추정(D10). 이슈 단위 매칭은 T2(이슈 추출) 설계 대기. 커밋·push 하지 않음.
