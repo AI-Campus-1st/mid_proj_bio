@@ -26,8 +26,8 @@
 | Day 1 기획·환경 | 완료 | 01·02 섹션 |
 | Day 2 공시 수집·적재 | 완료 | `docs/data_schema.md` |
 | Day 3 전처리·EDA | 완료 (2026-11-16 — 중복 처리·재분류, 텍스트 정제, EDA·급증 시점) | `docs/news_sort.md`, `docs/eda_report.md` |
-| Day 4 AI 이슈 추출 | 미착수 | 04_ai |
-| Day 5 RAG 공시 Q&A | 미착수 | 04_ai |
+| Day 4 AI 이슈 추출 | 진행 중 — 감성 분류 완료(전체 4,727건, 표본 정확도 85.0%). 이슈 키워드 추출 전체 실행·이슈 이름 묶기 완료(`issues_llm.csv`, `issue_groups.csv`, 사람 검수 전). 모달리티 태깅·번역은 미착수 (2026-11-17) | 04_ai |
+| Day 5 RAG 공시 Q&A | 진행 중 — 색인·질의응답·평가 완료(`rag/`, 질문 20개: 검색 12/14, 거절 6/6, 2026-11-17). 뉴스-공시 매칭 결과 생성(`news_disclosure_links.csv`, 직접 창 ±3일, 표본 검수 전). 대시보드 연결은 남음 | 04_ai |
 | Day 6 대시보드 | 미착수 | 05_design, 06_technical |
 | Day 7 고도화·발표 | 미착수 | 07_project-management |
 
@@ -73,8 +73,8 @@ docs/
 | | [DATA_PIPELINE](03_data/DATA_PIPELINE.md) | 수집 → 재분류 → 적재 → AI → 대시보드 흐름, 재실행 | 📝 |
 | **04 ai** | [AI_REQUIREMENTS](04_ai/AI_REQUIREMENTS.md) | AI 기능 목록, 처리 범위, 사전 생성·근거 조건 | 📝 |
 | | [AI_CLASSIFICATION](04_ai/AI_CLASSIFICATION.md) | 감성·이슈·모달리티·번역 프롬프트와 출력 형식 | 🔶 감성 분류 완료, 나머지 작성 전 |
-| | [NEWS_DISCLOSURE_MATCHING](04_ai/NEWS_DISCLOSURE_MATCHING.md) | 뉴스-공시 매칭 규칙, 공시 RAG 구성 | 🔶 설계 확정(팀 합의 2026-11-17), 구현·검증 전 |
-| | [AI_EVALUATION](04_ai/AI_EVALUATION.md) | 표본 검수 방법과 정확도 기록 (과제 필수) | 🔶 감성 분류 표본·절차 완료, 결과 기록 대기 |
+| | [NEWS_DISCLOSURE_MATCHING](04_ai/NEWS_DISCLOSURE_MATCHING.md) | 뉴스-공시 매칭 규칙, 공시 RAG 구성 | 🔶 설계 확정(팀 합의 2026-11-17). RAG는 구현·1차 평가 완료, 매칭은 실제 DB 실행 완료(직접 창 ±3일)·표본 검수 전 |
+| | [AI_EVALUATION](04_ai/AI_EVALUATION.md) | 표본 검수 방법과 정확도 기록 (과제 필수) | 🔶 감성 분류 결과(4절)·공시 RAG 평가(6절) 기록. 규칙 분류·이슈 추출 평가는 작성 전 |
 | **05 design** | [INFORMATION_ARCHITECTURE](05_design/INFORMATION_ARCHITECTURE.md) | 화면 목록·계층·필터 위치·이동 경로 | 🔶 초안(2026-11-17) — 결정 필요 U1~U5 팀 확인 전 |
 | | [USER_FLOW](05_design/USER_FLOW.md) | 시나리오별 화면 이동 흐름 | 📝 |
 | | [WIREFRAME](05_design/WIREFRAME.md) | 화면별 배치 | 🔶 초안(2026-11-17) — S0~S6 배치·상태 표시 |
