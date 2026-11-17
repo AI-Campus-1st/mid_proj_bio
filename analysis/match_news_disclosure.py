@@ -36,9 +36,9 @@ from config import DB_END, DB_PATH  # noqa: E402
 OUT = Path(os.environ.get("NEWS_DISC_LINKS_OUT", ROOT / "data" / "processed" / "news_disclosure_links.csv"))
 
 # ---------------------------------------------------------------- 설정
-# 시점 창(일). 검증 전 가설이다 — 수주 공시 주변 기사 분포로 확인한 뒤 확정한다 (문서 3-2절).
-DIRECT_BEFORE = 7    # 기사보다 며칠 먼저 접수된 공시까지 direct 로 볼지
-DIRECT_AFTER = 7     # 기사보다 며칠 뒤에 접수된 공시까지 direct 로 볼지
+# 시점 창(일). direct 는 수주 공시 주변 기사 분포를 보고 ±7 → ±3으로 줄였다 (문서 3-2절). follow 는 검증 전 가설이다.
+DIRECT_BEFORE = 3    # 기사보다 며칠 먼저 접수된 공시까지 direct 로 볼지
+DIRECT_AFTER = 3     # 기사보다 며칠 뒤에 접수된 공시까지 direct 로 볼지
 FOLLOW_AFTER = 90    # 기사 뒤 며칠까지 follow 로 볼지
 
 # event_class 별 가중치. analysis/disclosure_weights.py 의 RULES 와 같은 값이다.
