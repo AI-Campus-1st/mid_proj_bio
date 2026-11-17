@@ -28,9 +28,11 @@
 | `collect/` | 수집 계층 — DART 공시, 추가 뉴스. 응답 원본을 `data/raw/` 에 저장 |
 | `db/` | 적재 계층 — 통합 스키마(`schema.sql`)와 DB 구축(`build_db.py`) |
 | `analysis/` | 분석 계층 — 기업 선정용 공시 가중 점수, 뉴스 통합·재분류, 텍스트 정제(`clean_text.py`), EDA(`eda.py`) |
+| `rag/` | 공시 RAG — 색인(`build_index.py`), 질의응답(`qa.py`), 평가(`eval_rag.py`) |
 | `data/raw/` | 수집 원본 (JSON, JSONL, zip) |
 | `data/processed/` | 분석 산출물 — 기업 선정 점수, EDA 집계표(`eda_*.csv`) |
 | `data/db/` | 통합 DB `bio_cdmo.sqlite` (git 제외, 아래 순서로 재생성) |
+| `chroma_db/` | 공시 RAG 색인 (git 제외, 약 692MB. 아래 "공시 RAG" 순서로 만들거나 팀원에게 폴더를 받는다) |
 | `docs/` | 선정 근거, 스키마 문서, EDA 리포트(차트는 `docs/figures/eda/`) |
 
 ## 기술 스택
@@ -128,6 +130,29 @@ python analysis/eda.py
 ```
 
 기간은 `collect/config.py` 의 `DB_START`, `DB_END` 로 정한다. 값을 바꾸면 `data/raw/dart/list_selected/` 를 비우고 3번부터 다시 실행한다.
+
+## 실행 순서 — 공시 RAG (공시 Q&A)
+
+통합 DB(위 7번)가 있어야 한다. `.env` 의 `OPENAI_API_KEY` 를 쓰며 **API 비용이 든다.** 설계는 `docs/04_ai/NEWS_DISCLOSURE_MATCHING.md` 4절, 평가 결과는 `docs/04_ai/AI_EVALUATION.md` 6절.
+
+1. 색인 — 공시 본문을 잘라 임베딩하고 `chroma_db/` 에 저장한다. 청킹·임베딩·적재가 한 번에 일어나며 따로 띄울 서버는 없다. 먼저 `--dry-run` 으로 청크 수와 예상 비용을 확인한다 (전체 864건 → 36,548청크, 약 15분, 가격표 기준 약 $0.58). 중간에 끊기면 같은 명령을 다시 실행한다
+
+```bash
+python rag/build_index.py --dry-run
+python rag/build_index.py
+```
+
+2. 질의응답 — 질문 한 번에 임베딩 1회와 답변 LLM 1회를 호출한다. 근거 공시(공시명·제출일·링크)를 함께 보여 주고, 근거가 없으면 거절한다. 대시보드에서는 `rag/qa.py` 의 `ask()` 를 불러 쓴다
+
+```bash
+python rag/qa.py "SK바이오사이언스의 RSV 예방항체 기술도입 계약의 상대방은?"
+```
+
+3. 평가 — 질문 20개(`data/eval/rag_questions.csv`)로 검색 정확도와 거절 정확도를 잰다 (`data/eval/rag_eval_result.md`). `--rescore` 는 호출 없이 저장된 결과로 집계만 다시 만든다
+
+```bash
+python rag/eval_rag.py
+```
 
 ## 기업 선정 근거 재현
 

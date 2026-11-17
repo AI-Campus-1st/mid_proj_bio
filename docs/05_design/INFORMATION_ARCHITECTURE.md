@@ -144,7 +144,7 @@ AC-18("필터를 바꾸면 **모든 차트**가 함께 바뀐다")을 지키기 
 |---|---|---|
 | S0 | F1~F5 결과를 요약한 카드 | 대기 — F1~F5 산출물 이후 (PRD 6절) |
 | S1 | 기사량 추이·급증 시점 (`eda_*.csv`, `eda_spikes.csv`) | 준비됨 |
-| | LLM 이슈 추출(T2), 부상 이슈 증가율 | 대기 — 설계 전. 그전에는 임시 이슈 |
+| | LLM 이슈 추출(T2), 부상 이슈 증가율 | 이슈 추출 결과는 준비됨 — `issues_llm.csv` 4,727건, `issue_groups.csv` 이슈 이름 3,579개 → 대표 이름 2,704개 (사람 검수 전). 부상 이슈 증가율 집계는 대기 |
 | S2 | 규제·정책 카테고리 기사, 감성 라벨 (`sentiment_llm.csv`, sentiment-v3, 표본 정확도 85.0%) | 준비됨 |
 | | 영어 기사 번역 `title_ko` | 대기 — 번역 미실행 |
 | S3 | 모달리티 키워드 기사, 증설 공시 | 준비됨 |
@@ -152,8 +152,8 @@ AC-18("필터를 바꾸면 **모든 차트**가 함께 바뀐다")을 지키기 
 | S4 | 공시 `event_class` 집계 (`dart_disclosures_weighted.csv`) | 준비됨 |
 | | 수주 계약 금액 추출 (US-13, P2) | 대기 |
 | S5 | 기업별 기사량 vs 공시 시점 | 준비됨 (DB) |
-| | 뉴스-공시 연결 `news_disclosure_links.csv` | 대기 — 스크립트 작성됨, 실제 DB 실행 전 |
-| S6 | 공시 색인·질의 함수 (`rag/qa.py`) | 대기 — 팀원 구현 중 |
+| | 뉴스-공시 연결 `news_disclosure_links.csv` | 준비됨 — 7,135쌍 (직접 창 ±3일, 표본 검수 전. NEWS_DISCLOSURE_MATCHING 3-2절) |
+| S6 | 공시 색인·질의 함수 (`rag/qa.py`) | 준비됨 — `ask(question, corp_names, date_from, date_to)`. 색인 `chroma_db/` 는 git 에 없어 각자 `python rag/build_index.py` 로 만들거나 폴더를 전달받는다. 평가는 [AI_EVALUATION](../04_ai/AI_EVALUATION.md) 6절 (질문 20개: 검색 12/14, 거절 6/6) |
 
 ## 8. 결정 필요 (팀 확인 전 제안)
 
