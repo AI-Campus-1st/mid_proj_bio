@@ -70,7 +70,7 @@ docs/
 | **03 data** | [NEWS_DATA_SPEC](03_data/NEWS_DATA_SPEC.md) | 뉴스 출처 5종, 원본·통합본 형식, 품질 | 📝 |
 | | [DART_DATA_SPEC](03_data/DART_DATA_SPEC.md) | 기업 선정 근거, DART API, 공시 분류·가중치 | 📝 |
 | | [NEWS_CLASSIFICATION](03_data/NEWS_CLASSIFICATION.md) | 카테고리·CDMO 키워드 6개, 규칙 기반 분류, 중복 판정 | 📝 |
-| | [DATA_PIPELINE](03_data/DATA_PIPELINE.md) | 수집 → 재분류 → 적재 → AI → 대시보드 흐름, 재실행 | 📝 |
+| | [DATA_PIPELINE](03_data/DATA_PIPELINE.md) | 수집 → 재분류 → 적재 → AI → 대시보드 흐름, 재실행 | ✅ (2026-11-18) |
 | **04 ai** | [AI_REQUIREMENTS](04_ai/AI_REQUIREMENTS.md) | AI 기능 목록, 처리 범위, 사전 생성·근거 조건 | 📝 |
 | | [AI_CLASSIFICATION](04_ai/AI_CLASSIFICATION.md) | 감성·이슈·모달리티·번역 프롬프트와 출력 형식 | 🔶 감성 분류 완료, 이슈 추출(3절) 초안 — 구현자 확인 전. 모달리티 태깅·번역 작성 전 |
 | | [NEWS_DISCLOSURE_MATCHING](04_ai/NEWS_DISCLOSURE_MATCHING.md) | 뉴스-공시 매칭 규칙, 공시 RAG 구성 | 🔶 설계 확정(팀 합의 2026-11-17). RAG는 구현·평가 완료, 매칭은 실제 DB 실행(직접 창 ±3일)·표본 50쌍 검수 완료(2026-11-18) |
@@ -81,7 +81,7 @@ docs/
 | | [UI_SPECIFICATION](05_design/UI_SPECIFICATION.md) | 컴포넌트 동작·표시 규칙 | 🔶 초안(2026-11-17) — 디자인 토큰·테마, 공통 컴포넌트, 필터, S0~S6 컴포넌트, 표시 규칙·문구, AC 추적. U1~U5·미결 Q1~Q18 팀 확인 전 |
 | **06 technical** | [SYSTEM_ARCHITECTURE](06_technical/SYSTEM_ARCHITECTURE.md) | 계층 구조, 구성 요소, 실행 환경 | 📝 |
 | | [API_SPECIFICATION](06_technical/API_SPECIFICATION.md) | 외부 API, 내부 조회 인터페이스, RAG 입출력 | 📝 |
-| | [DATABASE_SCHEMA](06_technical/DATABASE_SCHEMA.md) | 통합 DB 스키마 공식 문서 | 📝 |
+| | [DATABASE_SCHEMA](06_technical/DATABASE_SCHEMA.md) | 통합 DB 스키마 공식 문서 | ✅ (2026-11-18) — DB 밖 산출물 연결·재빌드 시 보존 포함 |
 | | [TECH_STACK](06_technical/TECH_STACK.md) | 도구·버전·선택 이유 | 📝 |
 | **07 project-management** | [MILESTONES](07_project-management/MILESTONES.md) | 단계별 완료 조건과 실제 완료일, 릴리스 기록 | 📝 |
 | | [TASKS](07_project-management/TASKS.md) | 작업·담당자·상태 | 📝 |
@@ -126,7 +126,7 @@ PRODUCT_BRIEF ─┬─ PRODUCT_VISION ── (Core Question, 핵심 질문)
 |---|---|---|
 | `docs/dashboard_questions.md` | 1절 목적·Core Question → PRODUCT_VISION / 2절 사용자·Pain Point → PERSONA / 3절 핵심 질문 → PRODUCT_VISION, PRD / 4절 기능 ①~⑥ → PRD F1~F6 / 5절 시나리오 → PERSONA, USER_STORIES / 6절 점검표 → ACCEPTANCE_CRITERIA / 7절 한계 → PRD 5절, USER_RESEARCH | **이전 완료** — 모든 절이 01·02에 있음. 원본 삭제 여부는 팀 결정 |
 | `docs/company_selection.md` | 요약 → PRODUCT_BRIEF 3-2절 / 전체 → 03_data/DART_DATA_SPEC (작성 예정) | 일부 이전 |
-| `docs/data_schema.md` | 06_technical/DATABASE_SCHEMA, 03_data/DATA_PIPELINE (작성 예정) | 미이전 |
+| `docs/data_schema.md` | 전체 → 06_technical/DATABASE_SCHEMA (1~6절, 4절 수치는 2026-11-17 빌드로 재확인) / 1절 데이터 구성 → 03_data/DATA_PIPELINE | **이전 완료** (2026-11-18). 원본을 가리키는 링크(README, PRODUCT_BRIEF 등)는 아직 그대로 — 바꾼 뒤 원본 삭제 여부는 팀 결정 |
 | `docs/news_sort.md` | 03_data/NEWS_DATA_SPEC, 03_data/NEWS_CLASSIFICATION (작성 예정) | 미이전 |
 | `중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md` (루트) | 과제 요구사항 → PRODUCT_BRIEF, PRODUCT_VISION, PRD, ACCEPTANCE_CRITERIA, PRODUCT_ROADMAP | 과제 원문이므로 루트에 그대로 둔다 |
 | `README.md` (루트) | 실행 방법은 README에 유지. 문서 안내는 이 masterplan으로 연결 | 유지 |
