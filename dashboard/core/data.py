@@ -51,7 +51,8 @@ def news_frame() -> pd.DataFrame:
     con = connect()
     try:
         df = pd.read_sql(
-            "SELECT n.news_id, n.origin, n.published_date, n.title, n.url, n.press, n.lang, n.title_ko, "
+            "SELECT n.news_id, n.origin, n.published_date, n.published_at, n.title, n.url, n.press, n.lang, "
+            "n.title_ko, "
             "n.cdmo_kw_basis, c.title_clean FROM news n LEFT JOIN news_clean c USING (news_id) "
             "WHERE n.dup_of IS NULL", con)
     finally:
@@ -158,3 +159,17 @@ def spike_evidence(row: pd.Series) -> tuple:
             d, cls, name, url = m.groups()
             disclosures.append({"rcept_date": d, "event_class": cls, "report_nm": name, "url": url})
     return articles, disclosures
+
+
+# ---------------------------------------------------------------- 감성 라벨 (S2)
+
+SENTIMENT_PATH = PROCESSED / "sentiment_llm.csv"
+
+
+@st.cache_data(show_spinner=False)
+def sentiment_frame() -> pd.DataFrame:
+    """LLM 감성 라벨 (sentiment-v3). url 로 news 와 잇는다. 실패 행(label 없음)은 뺀다."""
+    df = pd.read_csv(SENTIMENT_PATH, dtype=str)
+    df = df[df.label.isin(["기회", "위험", "중립"])]
+    return df[["url", "label", "reason", "confidence", "input_basis", "model", "prompt_version"]] \
+        .drop_duplicates("url")
