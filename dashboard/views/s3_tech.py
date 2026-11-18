@@ -44,6 +44,60 @@ def _monthly(tagged: pd.DataFrame, filters: dict) -> pd.DataFrame:
     return table
 
 
+# 최다 증가 모달리티 기준 (2026-11-18 결정, hanju.md 기록)
+GROWTH_DAYS = 91      # 3개월. 1개월은 끝 날짜를 2주만 옮겨도 상위 10개가 0~7개만 겹쳐 불안정했고, 3개월은 5~9개 유지
+GROWTH_MIN = 5        # 1등 모달리티의 최근 3개월 기사가 이보다 적으면 "—". 기업을 하나만 고르는 등 숫자가 작을 때
+                      # 1→3건 같은 변화로 판단하지 않게 한다 (기본 필터에서는 7개 모두 13건 이상이라 걸러지는 것 없음)
+
+
+def _growth(tagged: pd.DataFrame, filters: dict) -> dict:
+    """사이드바 기간 끝 날짜 기준 최근 3개월과 직전 3개월의 모달리티별 기사 수.
+
+    순위는 증가 건수(최근 − 직전)다. 증가율(배수)로 줄 세우면 작은 숫자(1→5건 = +400%)가 위로 오고,
+    발표일이 기간 경계에 걸린 큰 사건이 밀린다. 직전 0건도 계산 불가 없이 함께 정렬된다.
+    돌려주는 dict: table(7개 모달리티 표, 증가 건수 내림차순), top(1등 행 또는 None), reason(top 이 없을 때 이유),
+    cur/prev(각 기간의 시작·끝 Timestamp).
+    """
+    s, e = (pd.Timestamp(x) for x in filters["period"])
+    cur = (e - pd.Timedelta(days=GROWTH_DAYS - 1), e)
+    prev = (cur[0] - pd.Timedelta(days=GROWTH_DAYS), cur[0] - pd.Timedelta(days=1))
+    out = {"table": None, "top": None, "reason": "", "cur": cur, "prev": prev}
+    if prev[0] < s:
+        # 직전 3개월이 사이드바 기간 밖이면 tagged 에 그 기사가 없어 직전 건수가 0으로 잘못 잡힌다
+        out["reason"] = "사이드바 기간이 6개월 이상이어야 계산합니다"
+        return out
+
+    def count(lo, hi):
+        t = tagged[(tagged.date >= lo) & (tagged.date <= hi)]
+        return t.groupby("modality").news_id.nunique().reindex(data.MODALITIES, fill_value=0)
+
+    c, p = count(*cur), count(*prev)
+    table = pd.DataFrame({"모달리티": data.MODALITIES, "직전 3개월": p.values, "최근 3개월": c.values})
+    table["증가 건수"] = table["최근 3개월"] - table["직전 3개월"]
+    table["증가율"] = [f"{(x - y) / y * 100:+.0f}%" if y else ("신규" if x else "—")
+                     for x, y in zip(table["최근 3개월"], table["직전 3개월"])]
+    table = table.sort_values(["증가 건수", "최근 3개월"], ascending=False, ignore_index=True)
+    out["table"] = table
+    top = table.iloc[0]
+    if top["증가 건수"] <= 0:
+        out["reason"] = "직전 3개월보다 늘어난 모달리티가 없습니다"
+    elif top["최근 3개월"] < GROWTH_MIN:
+        out["reason"] = f"최근 3개월 기사가 {GROWTH_MIN}건 미만이라 판단하지 않습니다"
+    else:
+        out["top"] = top
+    return out
+
+
+def _growth_kpi(g: dict) -> dict:
+    span = (f"직전 {g['prev'][0]:%Y-%m-%d}~{g['prev'][1]:%Y-%m-%d} · 최근 {g['cur'][0]:%Y-%m-%d}~{g['cur'][1]:%Y-%m-%d}")
+    rule = "사이드바 기간 끝 날짜 기준 최근 3개월과 직전 3개월 비교, 증가 건수 순."
+    if g["top"] is None:
+        return {"label": "최다 증가 모달리티", "value": "—", "help": f"{g['reason']}. {rule}"}
+    t = g["top"]
+    return {"label": "최다 증가 모달리티", "value": f"{t['모달리티']} +{int(t['증가 건수']):,}건",
+            "help": f"{int(t['직전 3개월']):,}건 → {int(t['최근 3개월']):,}건 ({t['증가율']}). {span}. {rule}"}
+
+
 def _company_matrix(tagged: pd.DataFrame, companies: list) -> pd.DataFrame:
     nc = data.news_companies()
     m = tagged.merge(nc[nc.corp_name.isin(companies)], on="news_id")
@@ -163,14 +217,14 @@ def render():
         ui.limits(LIMITS_S3)
         return
 
+    growth = _growth(tagged, filters)
     ui.kpis([
         {"label": "모달리티 기사", "value": f"{tagged.news_id.nunique():,}건",
          "help": f"모달리티 태그(7종)가 1개 이상 붙은 기사 · 범위 {', '.join(k.removeprefix('CDMO ') for k in kws)} 기사 "
                  f"{len(news):,}건 중"},
         {"label": "증설 공시 (정정 제외)", "value": f"{int((expansion['정정'] == '').sum()):,}건",
          "help": "event_class = 증설, 정정 공시 제외"},
-        {"label": "최다 증가 모달리티", "value": "준비 중",
-         "help": "직전 기간 대비 증가율 기준이 정해지지 않았습니다 (부상 이슈와 같은 미결 사항 Q6)"},
+        _growth_kpi(growth),
     ])
     st.divider()
 
@@ -184,6 +238,12 @@ def render():
         out = table.copy()
         out.index = out.index.strftime("%Y-%m")
         ui.table_view(out.reset_index(), "월별 모달리티 기사 수 (한 기사에 태그가 여러 개면 각 모달리티에 셈)")
+        if growth["table"] is not None:
+            with st.expander("최근 3개월 증감 (최다 증가 모달리티의 근거)"):
+                st.dataframe(growth["table"], hide_index=True, width="stretch", alt="모달리티별 최근 3개월과 직전 3개월 기사 수")
+                st.caption(f"직전 {growth['prev'][0]:%Y-%m-%d}~{growth['prev'][1]:%Y-%m-%d} · "
+                           f"최근 {growth['cur'][0]:%Y-%m-%d}~{growth['cur'][1]:%Y-%m-%d} · 증가 건수 순. "
+                           "한 기사에 태그가 여러 개면 각 모달리티에 셉니다.")
 
     head, ctl = st.columns([3, 2], vertical_alignment="bottom")
     head.markdown(f"#### 기업 × 모달리티 {TAG_BADGE}")
