@@ -20,6 +20,7 @@ DART list.json·document.xml  ─┐
    label_sentiment.py ─────→ sentiment_llm.csv                    (LLM, 유료)
    extract_issues.py ──────→ issues_llm.csv ─→ group_issues.py ─→ issue_groups.csv   (LLM, 유료)
    tag_modality.py ────────→ modality_llm.csv                     (LLM, 유료)
+   translate_titles.py ────→ title_ko.csv (+ DB news.title_ko)   (LLM, 유료)
    match_news_disclosure.py → news_disclosure_links.csv          (규칙, 무료)
    extract_contract_amounts.py → contract_amounts.csv            (정규식, 무료)
    build_summary_cards.py ─→ summary_cards.json                  (④ 결과 + DB, 무료)
@@ -48,6 +49,7 @@ DART list.json·document.xml  ─┐
 | ④ 이슈 추출 | `analysis/extract_issues.py` | 같은 4,727건 | `issues_llm.csv` | OpenAI |
 | ④ 이슈 이름 묶기 | `analysis/group_issues.py` | `issues_llm.csv` (이슈 이름 목록만) | `issue_groups.csv` | OpenAI |
 | ④ 모달리티 태깅 | `analysis/tag_modality.py` | 같은 4,727건 | `modality_llm.csv` | OpenAI |
+| ④ 영어 제목 번역 | `analysis/translate_titles.py` | DB 영어 기사 797건 (제목만) | `title_ko.csv` (+ DB `news.title_ko`) | OpenAI (전체 약 $0.18) |
 | ④ 뉴스-공시 매칭 | `analysis/match_news_disclosure.py` | DB | `news_disclosure_links.csv` | 없음 (규칙) |
 | ④ 수주 계약 금액 | `analysis/extract_contract_amounts.py` | DB (수주 공시 원문) | `contract_amounts.csv` | 없음 (정규식) |
 | ④ 요약 결론·카드 | `analysis/build_summary_cards.py` | DB, 감성·이슈 CSV | `summary_cards.json` | 없음 |
@@ -67,6 +69,7 @@ python analysis/label_sentiment.py --dry-run      ★ 확인 후 --dry-run 없�
 python analysis/extract_issues.py --dry-run       ★
 python analysis/group_issues.py --dry-run        ★ (extract_issues 다음)
 python analysis/tag_modality.py --dry-run         ★
+python analysis/translate_titles.py --all --dry-run ★ 영어 제목 번역
 python analysis/match_news_disclosure.py
 python analysis/extract_contract_amounts.py
 python analysis/build_summary_cards.py            (감성·이슈 결과 다음)
@@ -94,6 +97,7 @@ python rag/build_index.py --dry-run               ★ 임베딩
 | 공시 원문 | ③ → ④ 매칭·금액·RAG 색인 |
 | DB만 다시 빌드 (원본 그대로) | 할 일 없음 — ④ 결과는 `url`·`rcept_no` 키라 그대로 맞는다 (2026-11-18 확인, [DATABASE_SCHEMA](../06_technical/DATABASE_SCHEMA.md) 5절) |
 | 감성·이슈 결과 | `build_summary_cards.py` (요약 카드의 건수·근거 기사) |
+| 영어 기사 집합 | `translate_titles.py --all` (새 기사만 번역). DB만 다시 빌드하면 `build_db.py` 가 `title_ko.csv` 로 번역을 다시 채운다 |
 | 프롬프트·모델 | 해당 LLM 단계 (버전이 다르면 전체를 다시 처리 — 비용 추정 먼저) |
 
 ## 5. Git에 올리는 것과 빼는 것
@@ -109,7 +113,7 @@ python rag/build_index.py --dry-run               ★ 임베딩
 ## 6. 결과 저장 위치와 DB 재빌드 시 보존
 
 - **LLM 결과·매칭·금액·요약**은 DB 테이블이 아니라 `data/processed/` 파일에 기사 `url` 또는 공시 `rcept_no` 키로 저장한다. DB를 다시 빌드하면 `news_id` 가 바뀔 수 있기 때문이다. 대시보드가 화면에서 붙인다 (`dashboard/core/data.py`).
-- **영어 제목 번역(`title_ko`)** 은 DB 칸이 있지만 `db/build_db.py` 가 적재할 때마다 비운다. 번역은 `url` 키 CSV(예: `data/processed/translation_llm.csv`)로 저장해야 재빌드 후에도 남는다. 현재 번역은 미실행이다 (팀원 담당).
+- **영어 제목 번역(`title_ko`)** 은 `data/processed/title_ko.csv` (URL 키, 797건)에 저장한다. DB 칸은 적재할 때 비지만 `db/build_db.py` 의 `load_title_ko()` 가 이 파일로 다시 채운다. 번역만 DB에 다시 넣으려면 `python analysis/translate_titles.py --apply` (API 호출 없음). 2026-11-18 전체 번역 완료 (`translate-v3`, 품질 표본 검수 전 — [AI_CLASSIFICATION](../04_ai/AI_CLASSIFICATION.md) 5절).
 - **임베딩**은 `chroma_db/` 에 있고 청크마다 `rcept_no` 를 메타데이터로 가진다. DB 재빌드와 무관하다.
 
 ## 7. 한계와 유의점

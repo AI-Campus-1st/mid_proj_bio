@@ -74,7 +74,7 @@ meta (빌드 정보)
 | `cdmo_rel_basis` | CDMO 관련 근거: `title` / `body` / `query` / `none` |
 | `cdmo_kw_basis` | CDMO 키워드 근거: `title` / `body` / `query` / `none` |
 | `lang` | 기사 언어 `ko` / `en`. `en` 은 대시보드에서 한국어로 번역해 보여준다 |
-| `title_ko` | 한국어 번역 제목 캐시. 적재 시 NULL이고 번역 단계에서 채운다. **DB를 다시 빌드하면 비워진다** (6절) |
+| `title_ko` | 한국어 번역 제목 (영어 기사 797건 모두). `analysis/translate_titles.py` 가 만들어 `data/processed/title_ko.csv` 에 저장하고, `db/build_db.py` 의 `load_title_ko()` 가 빌드 때 이 파일로 채운다 (6절) |
 
 영어 기사의 `cdmo_mention` 과 기업 매핑(`news_companies`)은 영어 패턴(`collect/config.py` 의 `CDMO_PATTERN_EN`, `COMPANY_PATTERNS_EN`)으로 판정한다. 한국어 기사의 판정 규칙은 그대로이다.
 
@@ -192,6 +192,7 @@ LLM 결과·매칭·금액·요약은 **DB 테이블이 아니라 `data/processe
 | `sentiment_llm.csv` 감성(기회/위험/중립) | `analysis/label_sentiment.py` (LLM) | `url` → `news` | 4,727 | 전부 중복 제외 뉴스에 있음 |
 | `issues_llm.csv` 이슈 이름·유형·키워드 | `analysis/extract_issues.py` (LLM) | `url` → `news` | 4,727 | 전부 있음 |
 | `issue_groups.csv` 이슈 이름 묶음 | `analysis/group_issues.py` (LLM) | `issue_norm` → `issues_llm.csv` | 3,581 | — |
+| `title_ko.csv` 영어 제목 번역 | `analysis/translate_titles.py` (LLM) | `url` → `news` (빌드 때 `news.title_ko` 로 적재) | 797 | 전부 영어 기사에 있음 (2026-11-18 확인) |
 | `modality_llm.csv` 모달리티 태그 | `analysis/tag_modality.py` (LLM) | `url` → `news` | 4,727 | 전부 있음 |
 | `news_disclosure_links.csv` 뉴스-공시 연결 | `analysis/match_news_disclosure.py` (규칙) | `url` → `news`, `rcept_no` → `disclosures` | 7,135 (기사 1,441 · 공시 211) | 전부 있음 |
 | `contract_amounts.csv` 수주 계약 금액 | `analysis/extract_contract_amounts.py` (정규식) | `rcept_no` → `disclosures` | 98 | 전부 있음 |
@@ -208,7 +209,7 @@ LLM 결과·매칭·금액·요약은 **DB 테이블이 아니라 `data/processe
 | 데이터 | 재빌드하면 | 처리 |
 |---|---|---|
 | `news.news_id` | 다시 매겨져 바뀔 수 있다 | 분석 결과는 `url` 을 키로 저장한다 (5절의 산출물 모두 그렇게 되어 있음) |
-| `news.title_ko` (영어 제목 번역) | 항상 NULL로 비워진다 (`db/build_db.py` 146행) | **번역 결과는 DB가 아니라 `url` 키 CSV(예: `data/processed/translation_llm.csv`)로 저장**하고 화면이 그 파일을 붙인다. 현재 번역 0건이라 잃을 것은 없다 (번역은 팀원 담당, 미실행) |
+| `news.title_ko` (영어 제목 번역) | 적재 직후 비지만 `load_title_ko()` 가 `data/processed/title_ko.csv` 로 다시 채운다 (2026-11-18 `build_db.py` 수정) | 할 일 없음. 번역만 다시 넣을 때는 `python analysis/translate_titles.py --apply` (API 호출 없음) |
 | `news_clean` | 같은 규칙으로 다시 만들어진다 | 할 일 없음 (`analysis/clean_text.py` 규칙이 같으면 결과도 같다) |
 | `chroma_db/` (RAG 색인) | DB 재빌드와 무관 (별도 폴더) | 공시 원문이 바뀌면 `python rag/build_index.py` 로 다시 만든다 (임베딩 비용, 약 $0.58) |
 | `data/processed/` 산출물 | DB 재빌드와 무관 | 기사·공시 집합이 바뀌면 해당 스크립트를 다시 실행 ([DATA_PIPELINE](../03_data/DATA_PIPELINE.md) 4절) |
@@ -216,7 +217,7 @@ LLM 결과·매칭·금액·요약은 **DB 테이블이 아니라 `data/processe
 ## 7. 한계와 유의점
 
 - **구글 뉴스 수집분에는 본문이 없다.** 제목·매체·일자·링크만 있다. 본문 기반 분석(감성 분류 등)은 `provided`·`team` 또는 제목 기준으로 범위를 정해야 한다.
-- **해외 뉴스는 영어 원문이다.** 화면에는 `title_ko` 가 있으면 그것을, 없으면 원제목과 "번역 준비 중"을 보여준다(화면에서 번역을 호출하지 않는다, PRD N2). 국내 기사와 언어가 달라 같은 사건이 국내·해외 기사로 각각 남는다.
+- **해외 뉴스는 영어 원문이다.** 화면에는 번역 제목(`title_ko`)과 원제목을 함께 보여준다(번역은 미리 만든 것이고 화면에서 호출하지 않는다, PRD N2). 번역 품질은 표본 검수 전이다. 국내 기사와 언어가 달라 같은 사건이 국내·해외 기사로 각각 남는다.
 - **CDMO 키워드는 규칙 기반 분류이고 정확도를 검수하지 않았다.** `cdmo_kw_basis='query'` (1,045건, 해외 검색 159건 포함)는 제목에 단서가 없어 검색어를 따른 것으로 신뢰도가 낮다. 자세한 한계는 `docs/news_sort.md` 5절에 있다.
 - **`match_field='query'` 는 관련도가 낮다.** 기업명 검색에 걸렸으나 제목에는 기업명이 없는 기사로, 무관한 기사가 섞여 있다. 기업 단위 분석은 `title`·`body` 만 쓰는 것을 권장한다.
 - **출처마다 시기 분포가 다르다.** 팀원 수집과 CDMO 검색은 2026년에 몰려 있다. 기사량 추이는 `origin` 별로 나눠 해석한다.
