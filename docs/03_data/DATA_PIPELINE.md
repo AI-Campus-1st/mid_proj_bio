@@ -51,7 +51,7 @@ DART list.json·document.xml  ─┐
 | ④ 모달리티 태깅 | `analysis/tag_modality.py` | 같은 4,727건 | `modality_llm.csv` | OpenAI |
 | ④ 영어 제목 번역 | `analysis/translate_titles.py` | DB 영어 기사 797건 (제목만) | `title_ko.csv` (+ DB `news.title_ko`) | OpenAI (전체 약 $0.18) |
 | ④ 뉴스-공시 매칭 | `analysis/match_news_disclosure.py` | DB | `news_disclosure_links.csv` | 없음 (규칙) |
-| ④ 수주 계약 금액 | `analysis/extract_contract_amounts.py` | DB (수주 공시 원문) | `contract_amounts.csv` | 없음 (정규식) |
+| ④ 수주 계약 금액 | `analysis/extract_contract_amounts.py` | DB (수주 공시 원문) | `contract_amounts.csv` | 없음 (정규식, 규칙·검증은 [CONTRACT_AMOUNTS](CONTRACT_AMOUNTS.md)) |
 | ④ 요약 결론·카드 | `analysis/build_summary_cards.py` | DB, 감성·이슈 CSV | `summary_cards.json` | 없음 |
 | ④ 공시 RAG 색인 | `rag/build_index.py` | DB 공시 원문 | `chroma_db/` (청크 36,548) | OpenAI 임베딩 (전체 약 $0.58) |
 | ④ 평가·검수 표본 | `analysis/sample_sentiment.py`·`sample_match.py`·`sample_modality.py`, `rag/eval_rag.py` | DB, ④ 결과 | `data/eval/*` | `eval_rag.py` 만 OpenAI |

@@ -1,6 +1,6 @@
 # LLM 분류·추출 설계
 
-> **상태:** 일부 작성 — 2절 감성(영향) 분류 완료, 3절 이슈 추출 초안(코드·결과 파일을 보고 작성, 구현자 확인 전), 4절 모달리티 태깅 전체 실행 완료(사람 검수 전), 5절(번역) 작성 전 · **최종 갱신:** 2026-11-18
+> **상태:** 일부 작성 — 2절 감성(영향) 분류 완료, 3절 이슈 추출 초안(코드·결과 파일을 보고 작성, 구현자 확인 전), 4절 모달리티 태깅 전체 실행 완료(Claude 표본 검수, 사람 검수 전), 5절 번역 전체 실행 완료(797건, 품질 표본 검수 전) · **최종 갱신:** 2026-11-18
 > **원본:** `docs/news_sort.md` 3절, `docs/02_product-requirements/PRD.md` F1~F3·F8, `docs/02_product-requirements/ACCEPTANCE_CRITERIA.md` AC-07
 > **관련 문서:** [masterplan](../masterplan.md) · [AI_EVALUATION](AI_EVALUATION.md) · [AI_REQUIREMENTS](AI_REQUIREMENTS.md) · [NEWS_CLASSIFICATION](../03_data/NEWS_CLASSIFICATION.md)
 

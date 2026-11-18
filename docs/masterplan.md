@@ -71,6 +71,7 @@ docs/
 | | [DART_DATA_SPEC](03_data/DART_DATA_SPEC.md) | 기업 선정 근거, DART API, 공시 분류·가중치 | ✅ (2026-11-18) |
 | | [NEWS_CLASSIFICATION](03_data/NEWS_CLASSIFICATION.md) | 카테고리·CDMO 키워드 6개, 규칙 기반 분류, 중복 판정 | ✅ (2026-11-18) |
 | | [DATA_PIPELINE](03_data/DATA_PIPELINE.md) | 수집 → 재분류 → 적재 → AI → 대시보드 흐름, 재실행 | ✅ (2026-11-18) |
+| | [CONTRACT_AMOUNTS](03_data/CONTRACT_AMOUNTS.md) | 수주 공시 계약 금액 추출 규칙, 정정 공시 연결, 검증 결과 | ✅ (2026-11-18) — 금액 94/94건 매출 비율 대조 일치 |
 | **04 ai** | [AI_REQUIREMENTS](04_ai/AI_REQUIREMENTS.md) | AI 기능 목록, 처리 범위, 사전 생성·근거 조건 | 📝 |
 | | [AI_CLASSIFICATION](04_ai/AI_CLASSIFICATION.md) | 감성·이슈·모달리티·번역 프롬프트와 출력 형식 | 🔶 감성 분류 완료, 이슈 추출(3절) 초안 — 구현자 확인 전. 4절 모달리티 태깅·5절 번역 실행 완료(번역 품질 검수 전, 2026-11-18) |
 | | [NEWS_DISCLOSURE_MATCHING](04_ai/NEWS_DISCLOSURE_MATCHING.md) | 뉴스-공시 매칭 규칙, 공시 RAG 구성 | 🔶 설계 확정(팀 합의 2026-11-17). RAG는 구현·평가 완료, 매칭은 실제 DB 실행(직접 창 ±3일)·표본 50쌍 검수 완료(2026-11-18) |
