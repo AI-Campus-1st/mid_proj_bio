@@ -11,8 +11,9 @@
   2. 없으면 "계약금액(원) | N" 의 마지막 값. 정정 공시는 앞쪽 정정표에 "계약금액 | 정정전 | 정정후" 가 있고,
      뒤에 정정 후 서식 전체가 다시 실린다. 그래서 마지막 값이 최신 금액이다. 정정표 행만 있으면 정정후 값을 쓴다.
   3. 금액이 없으면(투자판단 관련 주요경영사항 — 계약 금액 비공개, 계약 해지 공시) 빈칸으로 두고 note 에 이유를 쓴다.
-정정 공시는 정정 대상 원공시의 제출일(original_date)도 뽑는다. 화면은 원공시에 최신 정정본 금액을 붙인다
-(eda_report 5절: "금액 추이는 최신 정정본 기준").
+정정 공시는 정정 대상 원공시의 제출일(original_date)과, 금액을 바꾼 정정이면 정정 전 금액(before_amount_krw)도 뽑는다.
+화면은 원공시에 최신 정정본 금액을 붙인다 (eda_report 5절: "금액 추이는 최신 정정본 기준").
+검증: docs/03_data/CONTRACT_AMOUNTS.md (금액 94건 모두 공시의 '매출액 대비(%)'와 일치).
 
 실행
   python analysis/extract_contract_amounts.py           # 추출해 저장하고 요약 출력
@@ -32,7 +33,7 @@ from config import DB_PATH  # noqa: E402
 
 OUT = ROOT / "data" / "processed" / "contract_amounts.csv"
 COLS = ["rcept_no", "corp_name", "rcept_date", "report_nm", "is_amended", "amount_krw", "amount_basis",
-        "original_date", "counterparty", "note"]
+        "original_date", "before_amount_krw", "counterparty", "note"]
 
 QUERY = """
 SELECT d.rcept_no, c.corp_name, d.rcept_date, d.report_nm, d.is_amended, COALESCE(x.text, '') AS text
@@ -50,6 +51,8 @@ AMOUNT = re.compile(r"계약금액\s*(?:\(원\))?\s*\|\s*" + NUM + r"(?:\s*\|\s*
 # 원공시 제출일. 표기가 공시마다 다르다: "2019-11-28", "2022.03.17", "2022 년 3 월 17 일"
 ORIGINAL = re.compile(r"(?:정정관련\s*공시서류\s*제출일|최초\s*제출일)\s*:?\s*\|?\s*"
                       r"(\d{4})\s*[년.-]\s*(\d{1,2})\s*[월.-]\s*(\d{1,2})")
+# 정정표의 "계약금액 | 정정전 | 정정후" 행 (금액을 바꾼 정정에만 있다)
+BEFORE_AFTER = re.compile(r"계약금액[^|\n]{0,12}\|\s*" + NUM + r"\s*\|\s*" + NUM)
 COUNTERPARTY = re.compile(r"계약상대방?\s*\|\s*([^|\n]{2,40}?)\s*(?:\||\n|- 최근|-최근|$)")
 
 
@@ -60,7 +63,7 @@ def to_int(s: str) -> int:
 def extract(row: dict) -> dict:
     text = row["text"]
     out = {k: row[k] for k in ("rcept_no", "corp_name", "rcept_date", "report_nm", "is_amended")}
-    out.update(amount_krw="", amount_basis="", original_date="", counterparty="", note="")
+    out.update(amount_krw="", amount_basis="", original_date="", before_amount_krw="", counterparty="", note="")
     if not text.strip():
         out["note"] = "원문 없음"
         return out
@@ -82,6 +85,10 @@ def extract(row: dict) -> dict:
         m = ORIGINAL.search(text)
         if m:
             out["original_date"] = f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+        # 정정 전 금액 — 같은 날 원공시가 여럿이거나 원공시 제출일이 정정일로 잘못 적힌 경우 원공시를 찾는 보조 키
+        b = BEFORE_AFTER.search(text)
+        if b:
+            out["before_amount_krw"] = to_int(b.group(1))
     m = COUNTERPARTY.search(text)
     if m:
         out["counterparty"] = m.group(1).strip()

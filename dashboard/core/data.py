@@ -283,7 +283,23 @@ def contract_amounts() -> tuple:
         return None
 
     amended["target"] = [resolve(c, d) for c, d in zip(amended.corp_name, amended.original_date)]
-    latest = (amended[amended.target.notna() & amended.amount.notna()]
+    # 보조 연결: 날짜로 못 찾은 금액 정정은 정정 전 금액(before_amount_krw)이 같은 기업 원공시의 그 시점 금액과
+    # 같은 것을 찾는다. 후보가 정확히 1건일 때만 잇는다. 삼성바이오로직스 2025-05-26 원공시 2건의 정정
+    # (2,420억 → 5,179억, 1,985억 → 2,751억)이 같은 날 원공시가 둘이라 날짜로는 연결되지 않았다 (2026-11-18 확인).
+    if "before_amount_krw" in amended.columns:
+        current = dict(zip(orig.rcept_no, orig.amount))
+        corp_of = dict(zip(orig.rcept_no, orig.corp_name))
+        for i in amended.sort_values(["rcept_date", "rcept_no"]).index:
+            r = amended.loc[i]
+            if pd.isna(r.target) and r.before_amount_krw:
+                before = float(r.before_amount_krw)
+                cand = [k for k, v in current.items() if corp_of[k] == r.corp_name and v == before]
+                if len(cand) == 1:
+                    amended.at[i, "target"] = cand[0]
+            t = amended.at[i, "target"]
+            if pd.notna(t) and pd.notna(r.amount):
+                current[t] = r.amount
+    latest =(amended[amended.target.notna() & amended.amount.notna()]
               .sort_values(["rcept_date", "rcept_no"]).groupby("target").last())
     n_amend = amended[amended.target.notna()].groupby("target").size()
     orig["first_amount"] = orig.amount
