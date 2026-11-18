@@ -165,6 +165,8 @@ def render():
         text = st.text_area("질문", placeholder="질문을 입력하세요", max_chars=300)
         if st.form_submit_button("질문하기", type="primary"):
             asked = text
+    if asked is None and st.session_state.get("qa_pending"):   # 요약(S0) 화면 검색창에서 넘어온 질문
+        asked = st.session_state.pop("qa_pending")
     if asked is not None:
         _submit(asked, scope)
 

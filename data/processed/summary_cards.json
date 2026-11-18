@@ -1,0 +1,404 @@
+{
+  "basis": "AI 초안 · 팀 검토",
+  "built_at": "2026-11-18T15:23:50",
+  "conclusion": "2023년 10월 ~ 2026년 10월 CDMO 뉴스는 기회가 위험보다 9배 많습니다(기회 2,186건 · 위험 234건). 기회는 삼성바이오로직스의 폴리펩타이드 인수와 대형 수주, 에스티팜 올리고 수주, CDMO 특별법에 몰려 있고, 위험은 미국 의약품 관세와 삼성바이오로직스 노사 갈등에 집중됩니다.",
+  "label_counts": {
+    "중립": 2307,
+    "기회": 2186,
+    "위험": 234
+  },
+  "cards": [
+    {
+      "id": "O1",
+      "type": "기회",
+      "title": "삼성바이오, 2.7조 폴리펩타이드 인수로 펩타이드(비만약) CDMO 진출",
+      "desc": "스위스 펩타이드 CDMO 인수를 결정하고 3조 원 유상증자로 자금을 마련했다.",
+      "screen": "compare",
+      "n_articles": 234,
+      "tags": {
+        "companies": [
+          "삼성바이오로직스"
+        ],
+        "keywords": [
+          "CDMO 모달리티",
+          "CDMO 생산능력",
+          "CDMO 경쟁 구도"
+        ],
+        "start": "2026-07-19",
+        "end": "2026-10-15"
+      },
+      "evidence": [
+        {
+          "kind": "기사",
+          "title": "삼성바이오로직스, 2.7조 인수 첫 관문 통과… 유럽 수주도 잇따라",
+          "press": "THE Biz(더비즈)",
+          "date": "2026-10-15",
+          "url": "http://www.the-biz.co.kr/news/articleView.html?idxno=729299"
+        },
+        {
+          "kind": "기사",
+          "title": "삼성바이오, 폴리펩타이드그룹 공개매수 87.88% 확보…'노조 파업·유증...",
+          "press": "리버티코리아포스트",
+          "date": "2026-10-13",
+          "url": "http://www.lkp.news/news/articleView.html?idxno=84905"
+        },
+        {
+          "kind": "기사",
+          "title": "삼성바이오로직스 '폴리펩타이드' 인수에 성큼 다가섰다, 2조7천억 투입...",
+          "press": "허프포스트코리아",
+          "date": "2026-10-13",
+          "url": "https://www.huffingtonpost.kr/article/261186"
+        },
+        {
+          "kind": "공시",
+          "title": "[첨부추가]주요사항보고서(타법인주식및출자증권양수결정)",
+          "press": "삼성바이오로직스",
+          "date": "2026-07-20",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260720000001"
+        },
+        {
+          "kind": "공시",
+          "title": "주요사항보고서(유상증자결정)",
+          "press": "삼성바이오로직스",
+          "date": "2026-08-28",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260828000001"
+        }
+      ]
+    },
+    {
+      "id": "O2",
+      "type": "기회",
+      "title": "삼성바이오로직스, 대형 수주 지속 — 누적 수주 220억 달러 돌파",
+      "desc": "2026년 9~10월 공급계약 공시가 이어지고 누적 수주액이 220억 달러를 넘었다.",
+      "screen": "compare",
+      "n_articles": 64,
+      "tags": {
+        "companies": [
+          "삼성바이오로직스"
+        ],
+        "keywords": [
+          "CDMO 수주"
+        ],
+        "start": "2023-11-28",
+        "end": "2026-10-04"
+      },
+      "evidence": [
+        {
+          "kind": "기사",
+          "title": "'누적 수주 30조' 이끈 존 림 삼성바이오 대표, 세계 1위 CDMO 정조준",
+          "press": "인사이트코리아",
+          "date": "2026-09-22",
+          "url": "https://www.insightkorea.co.kr/news/articleView.html?idxno=255197"
+        },
+        {
+          "kind": "기사",
+          "title": "삼성바이오로직스, 美 록빌 공장 인수 후 첫 수주…'한·미·유럽 삼각 ...",
+          "press": "베타뉴스",
+          "date": "2026-06-25",
+          "url": "https://www.betanews.net/article/view/beta202606250073"
+        },
+        {
+          "kind": "기사",
+          "title": "삼성바이오로직스, 9000억 위탁생산 계약…연 누적수주 5조 돌파",
+          "press": "중앙일보",
+          "date": "2024-11-20",
+          "url": "https://n.news.naver.com/mnews/article/025/0003401899"
+        },
+        {
+          "kind": "공시",
+          "title": "단일판매ㆍ공급계약체결",
+          "press": "삼성바이오로직스",
+          "date": "2026-09-10",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260910800388"
+        },
+        {
+          "kind": "공시",
+          "title": "단일판매ㆍ공급계약체결(자율공시)",
+          "press": "삼성바이오로직스",
+          "date": "2026-10-02",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261002800830"
+        }
+      ]
+    },
+    {
+      "id": "O3",
+      "type": "기회",
+      "title": "에스티팜, 올리고 수주 확대 — 913억 원 역대 최대 계약",
+      "desc": "올리고 원료 공급계약이 잇따르고 제2올리고동을 앞세워 글로벌 수주에 나섰다.",
+      "screen": "compare",
+      "n_articles": 65,
+      "tags": {
+        "companies": [
+          "에스티팜"
+        ],
+        "keywords": [
+          "CDMO 모달리티",
+          "CDMO 수주"
+        ],
+        "start": "2024-07-26",
+        "end": "2026-10-08"
+      },
+      "evidence": [
+        {
+          "kind": "기사",
+          "title": "올리고에 일찍 베팅한 에스티팜…실적 '고공행진'",
+          "press": "매경헬스",
+          "date": "2026-09-21",
+          "url": "http://www.mkhealth.co.kr/news/articleView.html?idxno=80185"
+        },
+        {
+          "kind": "기사",
+          "title": "에스티팜, 올리고 수주 탄력붙었다⋯'탈중국' 틈타 글로벌 주도권 잡나",
+          "press": "아이뉴스24",
+          "date": "2026-09-21",
+          "url": "http://www.inews24.com/view/2007894"
+        },
+        {
+          "kind": "기사",
+          "title": "에스티팜, 제2올리고동 증설 후 대형 수주 확대…추가 설비 검토",
+          "press": "PRESS9",
+          "date": "2026-09-21",
+          "url": "http://www.press9.kr/news/articleView.html?idxno=83034"
+        },
+        {
+          "kind": "공시",
+          "title": "단일판매ㆍ공급계약체결",
+          "press": "에스티팜",
+          "date": "2026-09-18",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260918900224"
+        },
+        {
+          "kind": "공시",
+          "title": "단일판매ㆍ공급계약체결",
+          "press": "에스티팜",
+          "date": "2026-03-16",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260316901006"
+        },
+        {
+          "kind": "공시",
+          "title": "단일판매ㆍ공급계약체결",
+          "press": "에스티팜",
+          "date": "2026-01-23",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20260123900243"
+        }
+      ]
+    },
+    {
+      "id": "O4",
+      "type": "기회",
+      "title": "CDMO 특별법 하위법령 입법 예고, 2026년 12월 시행",
+      "desc": "수출 CDMO 맞춤 규제 지원을 담은 특별법 하위규정이 예고됐다. 정책이라 공시는 없다.",
+      "screen": "policy",
+      "n_articles": 66,
+      "tags": {
+        "companies": [],
+        "keywords": [
+          "CDMO 규제·정책"
+        ],
+        "start": "2024-07-24",
+        "end": "2026-09-02"
+      },
+      "evidence": [
+        {
+          "kind": "기사",
+          "title": "CDMO 특별법 하위법령 입법예고…업계 \"실효성 있는 세부 기준 기대\"",
+          "press": "뉴스1",
+          "date": "2026-07-28",
+          "url": "https://www.news1.kr/bio/pharmaceutical-bio/6240479"
+        },
+        {
+          "kind": "기사",
+          "title": "식약처, CDMO 규제지원 특별법 하위법령 입법예고",
+          "press": "medigatenews.com",
+          "date": "2026-07-27",
+          "url": "https://www.medigatenews.com/news/3402862773"
+        },
+        {
+          "kind": "기사",
+          "title": "CDMO 특별법 하위법령 입법예고…바이오 생산·수출 지원체계 구체화",
+          "press": "대구신문",
+          "date": "2026-07-26",
+          "url": "https://www.idaegu.co.kr/news/articleView.html?idxno=554849"
+        }
+      ]
+    },
+    {
+      "id": "O5",
+      "type": "기회",
+      "title": "생산능력 증설 — 삼성 5·6공장, 바이넥스 오송, 롯데 송도",
+      "desc": "국내 CDMO들이 공장 가동·착공·증설로 생산능력을 늘리고 있다.",
+      "screen": "tech",
+      "n_articles": 86,
+      "tags": {
+        "companies": [
+          "삼성바이오로직스",
+          "바이넥스"
+        ],
+        "keywords": [
+          "CDMO 생산능력"
+        ],
+        "start": "2024-01-01",
+        "end": "2026-10-19"
+      },
+      "evidence": [
+        {
+          "kind": "기사",
+          "title": "\"11월 유증 완료 후 6공장 착공·폴리펩타이드 인수…삼성바이오로직스...",
+          "press": "뉴스퀘스트",
+          "date": "2026-10-07",
+          "url": "https://www.newsquest.co.kr/news/articleView.html?idxno=302240"
+        },
+        {
+          "kind": "기사",
+          "title": "삼성바이오로직스, 유증 규모 축소에 6공장 부족자금 '자체조달'",
+          "press": "FETV",
+          "date": "2026-10-06",
+          "url": "https://www.fetv.co.kr/news/articleView.html?idxno=311308"
+        },
+        {
+          "kind": "기사",
+          "title": "삼성바이오로직스, 5공장 매출 키운다…내년 이익 확대 기대감",
+          "press": "메디파나뉴스",
+          "date": "2026-10-06",
+          "url": "https://www.medipana.com/news/articleView.html?idxno=418796"
+        },
+        {
+          "kind": "공시",
+          "title": "신규시설투자등",
+          "press": "바이넥스",
+          "date": "2025-09-22",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20250922900023"
+        }
+      ]
+    },
+    {
+      "id": "R1",
+      "type": "위험",
+      "title": "미국 의약품 관세 발효",
+      "desc": "최대 100% 관세 발표(2026-04) 후 발효. 한국산은 15%, ADC·CGT는 0%로 정해졌다.",
+      "screen": "policy",
+      "n_articles": 37,
+      "tags": {
+        "companies": [],
+        "keywords": [
+          "CDMO 지정학"
+        ],
+        "start": "2025-02-20",
+        "end": "2026-10-02"
+      },
+      "evidence": [
+        {
+          "kind": "기사",
+          "title": "미국 의약품 관세 발효…한국산 ADC·CGT는 0%",
+          "press": "뉴스저널리즘",
+          "date": "2026-09-30",
+          "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTE1pbHVEUVN2bC0yS0ZfZFo5RjlBNlVYRjlvQ2VIYkFvSEhoNlBQdFUxUjFpQnc0M1A1blZZbUlyZ1JFQ0pBb21RX1JDbUl1aThRdlRNN3lNd2JZaVFkeGI2Q1JKVFNhVGxSeGpB?oc=5"
+        },
+        {
+          "kind": "기사",
+          "title": "미 의약품 관세 발효, 중장기 선택 문제",
+          "press": "중소기업신문",
+          "date": "2026-09-29",
+          "url": "http://www.smedaily.co.kr/news/articleView.html?idxno=363900"
+        },
+        {
+          "kind": "기사",
+          "title": "트럼프발 100% 관세…국내 바이오 직격탄 오나",
+          "press": "연합뉴스",
+          "date": "2025-10-07",
+          "url": "https://n.news.naver.com/mnews/article/001/0015667387"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "type": "위험",
+      "title": "삼성바이오로직스 노사 갈등이 3조 유상증자·신공장 일정에 부담",
+      "desc": "파업과 노조의 유상증자 보류 요구가 이어지며 증권가가 눈높이를 낮췄다.",
+      "screen": "trend",
+      "n_articles": 66,
+      "tags": {
+        "companies": [
+          "삼성바이오로직스"
+        ],
+        "keywords": [
+          "CDMO 수주",
+          "CDMO 경쟁 구도"
+        ],
+        "start": "2026-03-23",
+        "end": "2026-10-18"
+      },
+      "evidence": [
+        {
+          "kind": "기사",
+          "title": "법원 제동에 힘빠진 삼성바이오 노조, ‘우리사주 청약’ 압박카드로 쓰...",
+          "press": "디지털타임스",
+          "date": "2026-10-18",
+          "url": "https://www.dt.co.kr/article/12089687?ref=naver"
+        },
+        {
+          "kind": "기사",
+          "title": "[ET시선]삼성바이오 노조, 글로벌 CDMO '골든타임' 무게 알아야",
+          "press": "전자신문",
+          "date": "2026-10-18",
+          "url": "https://www.etnews.com/20261016000177"
+        },
+        {
+          "kind": "기사",
+          "title": "법원에 제동 걸린 삼성바이오 노조 파업…임금·성과급 입장차 '여전'",
+          "press": "머니투데이",
+          "date": "2026-10-18",
+          "url": "https://www.mt.co.kr/thebio/2026/10/18/2026101812574553947"
+        },
+        {
+          "kind": "공시",
+          "title": "[기재정정]주요사항보고서(유상증자결정)",
+          "press": "삼성바이오로직스",
+          "date": "2026-10-01",
+          "url": "https://dart.fss.or.kr/dsaf001/main.do?rcpNo=20261001000449"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "type": "위험",
+      "title": "품질·규제 처분 — 바이넥스 제조정지, 노보 노디스크 FDA 제재",
+      "desc": "시험 결과지 위반에 따른 제조정지 등 품질 문제가 수주 신뢰에 위험 요인이다.",
+      "screen": "policy",
+      "n_articles": 8,
+      "tags": {
+        "companies": [
+          "바이넥스"
+        ],
+        "keywords": [
+          "CDMO 규제·정책"
+        ],
+        "start": "2023-10-20",
+        "end": "2026-08-10"
+      },
+      "evidence": [
+        {
+          "kind": "기사",
+          "title": "비만약 증산하려 공장 샀는데…노보, FDA 규제 리스크 '복병'",
+          "press": "메디파나뉴스",
+          "date": "2026-08-10",
+          "url": "https://www.medipana.com/news/articleView.html?idxno=415694"
+        },
+        {
+          "kind": "기사",
+          "title": "바이넥스 시험결과지 임의 재출력 '들통'…식약처, 제조정지 철퇴",
+          "press": "www.ebn.co.kr",
+          "date": "2026-05-27",
+          "url": "https://news.google.com/rss/articles/CBMiaEFVX3lxTE5SWHF0X2NBXy1WeFctZFZNcHRJdlRSdDh1cnNIa29SNG90aTVBYklSdDdIX2g1TDBuNDVyM1l0bDRLLTVqeE5WUFZRTFJRUlZjaVEzelgzbnRWdDJLMnEtd0VRZUJCRVdh?oc=5"
+        },
+        {
+          "kind": "기사",
+          "title": "바이넥스, 원료시험 결과지 위반…제조정지 처분",
+          "press": "데일리메디",
+          "date": "2026-05-26",
+          "url": "https://www.dailymedi.com/news/news_view.php?wr_id=936775"
+        }
+      ]
+    }
+  ]
+}
