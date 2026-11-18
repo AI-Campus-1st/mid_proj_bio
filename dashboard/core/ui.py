@@ -83,6 +83,24 @@ def sentiment_badge(label: str) -> str:
     return SENTIMENT_BADGE.get(label, ":gray-badge[미분류]")
 
 
+def news_line(row: dict) -> None:
+    """6-5절 뉴스 형식: <제목> · <매체> · <YYYY-MM-DD> · [원문]. 영어 기사는 번역 배지, 검색어 근거면 배지."""
+    title = row.get("title_clean") or row.get("title") or ""
+    badges = ""
+    if row.get("lang") == "en":
+        if row.get("title_ko"):
+            title, badges = row["title_ko"], ":gray-badge[번역] "
+        else:
+            badges = ":gray-badge[번역 준비 중] "
+    if row.get("cdmo_kw_basis") == "query":
+        badges += ":gray-badge[검색어 근거] "
+    link = f"[원문]({row['url']})" if row.get("url") else "원문 없음"
+    parts = [f"{badges}{title}", row.get("press") or "", row.get("published_date") or "", link]
+    st.markdown(" · ".join(p for p in parts if p))
+    if row.get("lang") == "en" and row.get("title_ko"):
+        st.caption(f"원제목: {row.get('title')}")
+
+
 def dart_url(rcept_no: str) -> str:
     return f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={rcept_no}"
 
