@@ -1,7 +1,8 @@
 """이슈·트렌드 — F1 (US-03, US-04, US-05 / AC-03, AC-04, AC-05). docs/05_design/UI_SPECIFICATION.md 5-2절.
 
 기사량 추이(출처별 누적 막대 / 키워드별 소형 다중 차트)와 급증 시점, 선택한 급증의 대표 기사·같은 시기 공시.
-부상 이슈(S1-C4)는 증가율 기준이 정해지지 않아(미결 Q6) '준비 중'으로 둔다.
+부상 이슈(S1-C4)는 LLM 이슈(issues_llm.csv + issue_groups.csv)로 최근 3개월과 직전 3개월을 비교한다
+(기준과 근거: AI_CLASSIFICATION 3-8절).
 """
 import math
 
@@ -18,6 +19,7 @@ LIMITS_S1 = [
     "2024-01 중순 이전은 급증을 판정하지 않습니다.",
     "급증 판정에서 팀원수집 1,306건은 제외했습니다.",
     "이슈 이름(LLM 추출)은 표본 30건 검수에서 98.7%(층 가중)가 정확했습니다.",
+    "부상 이슈는 필터 기간 끝에서 최근 3개월과 직전 3개월을 비교하며, 최근 3개월 기사 5건 이상인 이슈만 증가 건수 순으로 보입니다. 팀원수집 제외 토글을 따릅니다.",
 ]
 EVENT_NOTE = "정기 행사 주간의 급증입니다 (바이오 USA 6월, CPHI 10월)"
 
@@ -202,6 +204,104 @@ def _spike_detail(spikes: pd.DataFrame) -> None:
                         f"[DART]({d['url']})")
 
 
+# ---------------------------------------------------------------- 부상 이슈 (S1-C4)
+
+EMERGE_DAYS = 91   # 비교 구간 길이 (최근·직전 각각)
+EMERGE_MIN = 5     # 최근 구간 최소 기사 수
+
+
+def _emerging(news: pd.DataFrame, filters: dict) -> dict:
+    """필터된 기사(news)로 이슈별 최근·직전 기사 수를 세고 증가 건수(최근 − 직전) 순으로 정렬한다.
+    직전 0건은 증가율 대신 "신규"로 표시한다."""
+    s, e = (pd.Timestamp(x) for x in filters["period"])
+    cur = (e - pd.Timedelta(days=EMERGE_DAYS - 1), e)
+    prev = (cur[0] - pd.Timedelta(days=EMERGE_DAYS), cur[0] - pd.Timedelta(days=1))
+    out = {"table": None, "cur": cur, "prev": prev, "reason": "", "articles": None}
+    if prev[0] < s:
+        out["reason"] = "필터 기간이 6개월 이상이어야 계산합니다"
+        return out
+    art = news.merge(data.issues_frame(), on="url")
+    art = art[(art.date >= prev[0]) & (art.date <= cur[1])]
+    art = art.assign(window=(art.date >= cur[0]).map({True: "cur", False: "prev"}))
+    cnt = art.pivot_table(index="issue_group", columns="window", values="news_id", aggfunc="nunique", fill_value=0)
+    cnt = cnt.reindex(columns=["prev", "cur"], fill_value=0)
+    cnt = cnt[(cnt.cur >= EMERGE_MIN) & (cnt.cur > cnt.prev)].copy()
+    if cnt.empty:
+        out["reason"] = f"최근 3개월 기사 {EMERGE_MIN}건 이상이면서 늘어난 이슈가 없습니다"
+        return out
+    cnt["diff"] = cnt.cur - cnt.prev
+    cnt = cnt.sort_values(["diff", "cur"], ascending=False)
+    rate = [f"{(c - p) / p * 100:+,.0f}%" if p else "신규" for c, p in zip(cnt.cur, cnt.prev)]
+    out["table"] = pd.DataFrame({
+        "이슈명": cnt.index, "증가율": rate, "증가 건수": cnt["diff"].values,
+        "기간": f"{cur[0]:%Y-%m-%d} ~ {cur[1]:%Y-%m-%d}", "기사 수": cnt.cur.values, "직전 3개월": cnt.prev.values})
+    out["articles"] = art
+    return out
+
+
+def _select_issue() -> None:
+    rows = st.session_state["s1_issue_tbl"]["selection"]["rows"]
+    ids = st.session_state.get("_s1_issue_ids", [])
+    st.session_state["s1_issue"] = ids[rows[0]] if rows and rows[0] < len(ids) else None
+
+
+def _go_linkage(companies: list, period: tuple) -> None:
+    """L4 — 선택 이슈의 최근 기사에 나온 기업과 최근 구간을 사이드바 필터에 넣는다 (콜백, UI 명세 4-4절)."""
+    f = dict(st.session_state["filters"])
+    if companies:
+        f["companies"] = [c for c in data.COMPANIES if c in companies]
+        st.session_state["flt_companies"] = f["companies"]
+    f["period"] = period
+    st.session_state["flt_period"] = period
+    st.session_state["filters"] = f
+
+
+def _linkage_page():
+    from views import s5_linkage
+    return st.Page(s5_linkage.render, title="뉴스-공시 연계", url_path="linkage")
+
+
+def _emerging_section(news: pd.DataFrame, filters: dict) -> None:
+    st.markdown("#### 부상 이슈 (직전 3개월 대비) :gray-badge[AI 생성]")
+    g = _emerging(news, filters)
+    if g["table"] is None:
+        st.caption(g["reason"])
+        return
+    table = g["table"]
+    st.caption(f"최근 3개월 {g['cur'][0]:%Y-%m-%d}~{g['cur'][1]:%Y-%m-%d} vs 직전 {g['prev'][0]:%Y-%m-%d}~"
+               f"{g['prev'][1]:%Y-%m-%d} · 최근 기사 {EMERGE_MIN}건 이상, 증가 건수 순 · 이슈 이름은 LLM 추출 결과입니다 "
+               "(표본 사람 검수 이름 98.7%)")
+    st.session_state["_s1_issue_ids"] = table["이슈명"].tolist()
+    st.dataframe(table, hide_index=True, width="stretch", height=min(36 * (len(table) + 1) + 4, 400),
+                 key="s1_issue_tbl", on_select=_select_issue, selection_mode="single-row",
+                 alt="부상 이슈 — 최근 3개월 기사 수가 직전 3개월보다 많이 늘어난 순",
+                 column_config={"이슈명": st.column_config.TextColumn(width="large")})
+    sel = st.session_state.get("s1_issue")
+    sel = sel if sel in set(table["이슈명"]) else None
+    art = g["articles"]
+    recent = art[(art.issue_group == sel) & (art.window == "cur")].drop_duplicates("news_id") if sel else art.iloc[0:0]
+    nc = data.news_companies()
+    companies = sorted(set(nc[nc.news_id.isin(recent.news_id)].corp_name)) if sel else []
+    c1, c2 = st.columns(2, gap="small")
+    show = c1.button("대표 기사", key="s1_issue_articles", disabled=sel is None, width="stretch")
+    if c2.button("관련 공시 →", key="s1_issue_link", disabled=sel is None, width="stretch",
+                 on_click=_go_linkage, args=(companies, (g["cur"][0].date(), g["cur"][1].date())),
+                 help="선택한 이슈의 최근 기사에 나온 기업과 최근 3개월로 필터를 바꾸고 뉴스-공시 연계 화면으로 갑니다. "
+                      "이슈 자체는 넘어가지 않습니다 (S5는 키워드 × 기업 × 월로 묶음)"):
+        st.switch_page(_linkage_page())
+    if sel is None:
+        st.caption("행을 고르면 대표 기사와 관련 공시로 갈 수 있습니다")
+    elif show or st.session_state.get("_s1_issue_open") == sel:
+        st.session_state["_s1_issue_open"] = sel
+        with st.container(border=True):
+            st.markdown(f"**{sel}** — 최근 3개월 {len(recent):,}건 (최근순 10건)")
+            for r in recent.sort_values("date", ascending=False).head(10).to_dict("records"):
+                ui.news_line(r)
+            if companies:
+                st.caption("기사에 나온 기업: " + ", ".join(companies))
+    ui.table_view(table, "부상 이슈 (최근 3개월 기사 5건 이상, 증가 건수 순)")
+
+
 # ---------------------------------------------------------------- 화면
 
 def render():
@@ -273,6 +373,5 @@ def render():
     with right:
         _spike_detail(spikes)
 
-    st.markdown("#### 부상 이슈 (직전 기간 대비 증가율)")
-    ui.pending("부상 이슈 (직전 기간 대비 증가율)", "부상 이슈 증가율 집계")
+    _emerging_section(counted, filters)
     ui.limits(LIMITS_S1)

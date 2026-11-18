@@ -339,3 +339,21 @@ def filter_links(filters: dict) -> pd.DataFrame:
     # astype(bool): 0행일 때 map 결과가 object 형이라 df[keep] 이 열 선택으로 읽혀 열이 사라지는 것을 막는다
     keep = df.keywords.map(lambda ks: bool(sel & set(ks)) if ks else all_kw).astype(bool)
     return df[keep]
+
+
+# ---------------------------------------------------------------- LLM 이슈 (S1 부상 이슈)
+
+ISSUES_PATH = PROCESSED / "issues_llm.csv"
+ISSUE_GROUPS_PATH = PROCESSED / "issue_groups.csv"
+
+
+@st.cache_data(show_spinner=False)
+def issues_frame() -> pd.DataFrame:
+    """기사 1건 = 1행. LLM 이슈 이름(issue-v1)에 묶기 결과의 대표 이름(issue_group)을 붙인다 (issue_norm 조인).
+    묶기에 없는 이름은 원래 이름을 대표 이름으로 쓴다."""
+    df = pd.read_csv(ISSUES_PATH, dtype=str).fillna("")
+    df = df[df.issue != ""][["url", "issue", "issue_norm", "issue_type"]]
+    groups = pd.read_csv(ISSUE_GROUPS_PATH, dtype=str).fillna("")
+    df = df.merge(groups[["issue_norm", "issue_group"]].drop_duplicates("issue_norm"), on="issue_norm", how="left")
+    df["issue_group"] = df.issue_group.where(df.issue_group.fillna("") != "", df.issue)
+    return df
