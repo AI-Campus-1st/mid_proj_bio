@@ -14,8 +14,12 @@
         같은 사건 = 기사가 그 공시의 사건(같은 계약·투자·결정)을 다룬다
         관련     = 같은 사건은 아니지만 같은 기업의 같은 종류 사업 활동이라 함께 볼 만하다
         무관     = 기업만 같고 내용이 이어지지 않는다
+      judge_claude·claude_confidence·claude_reason 은 Claude 의 1차 판정이다 (2026-11-18, 기사 본문·공시 원문을
+      읽고 판정). 사람 판정이 아니므로 label_final 을 사람이 확인해 채운다.
 실행: python analysis/sample_match.py [--force]
       판정이 이미 적힌 파일은 덮어쓰지 않는다. 새로 뽑으려면 --force (기존 판정 삭제).
+      python analysis/sample_match.py --summary
+      층별 판정 집계만 출력한다. label_final 이 있으면 그 값을, 없으면 judge_claude 를 센다.
 주의: 층마다 뽑는 비율이 다르므로 50쌍 전체의 비율을 그대로 전체 정밀도로 쓰면 안 된다. 층별로 본다.
 """
 import csv
@@ -37,7 +41,8 @@ EXCERPT_CHARS = 400      # 공시 원문 앞부분을 이만큼 함께 보여 �
 # 층별 표본 수: (창 구분, 삼성바이오로직스, 그 외)
 PLAN = [("direct_same_day", 10, 5), ("direct_near", 10, 5), ("follow", 12, 8)]
 STRATUM_KO = {"direct_same_day": "직접·당일", "direct_near": "직접·±1~3일", "follow": "후속"}
-JUDGE_COLS = ["judge_a", "judge_b", "label_final", "note"]
+JUDGE_COLS = ["judge_claude", "claude_confidence", "claude_reason", "judge_a", "judge_b", "label_final", "note"]
+LABELS = ["같은 사건", "관련", "무관"]
 COLS = ["pair_id", "stratum", "window", "day_gap", "corp_name",
         "news_date", "news_title", "press", "news_keyword", "kw_low_confidence", "news_url",
         "rcept_date", "report_nm", "event_class", "is_amended", "disclosure_excerpt", "dart_url",
@@ -103,7 +108,29 @@ def has_judgments() -> bool:
         return any(any((r.get(c) or "").strip() for c in JUDGE_COLS) for r in csv.DictReader(f))
 
 
+def summary() -> str:
+    """층 × 기업 × 판정 집계. label_final 이 비어 있으면 judge_claude 를 쓴다."""
+    with OUT.open(encoding="utf-8-sig", newline="") as f:
+        rows = list(csv.DictReader(f))
+    n_final = sum(1 for r in rows if r["label_final"].strip())
+    source = "label_final" if n_final == len(rows) else ("judge_claude" if n_final == 0 else None)
+    if source is None:
+        return f"label_final 이 {n_final}/{len(rows)}개만 채워져 있다. 다 채운 뒤 집계한다."
+    lines = [f"판정 출처: {source} ({len(rows)}쌍)", "층 | 기업 | n | " + " | ".join(LABELS)]
+    for name, _, _ in PLAN:
+        ko = STRATUM_KO[name]
+        for label, cond in (("삼성", lambda r: r["corp_name"] == BIG), ("그 외", lambda r: r["corp_name"] != BIG),
+                            ("계", lambda r: True)):
+            sub = [r for r in rows if r["stratum"] == ko and cond(r)]
+            c = Counter(r[source] for r in sub)
+            lines.append(f"{ko} | {label} | {len(sub)} | " + " | ".join(str(c[x]) for x in LABELS))
+    return "\n".join(lines)
+
+
 def main() -> None:
+    if "--summary" in sys.argv:
+        print(summary())
+        return
     if has_judgments() and "--force" not in sys.argv:
         sys.exit(f"{OUT.relative_to(ROOT)} 에 판정이 적혀 있어 덮어쓰지 않는다. 새로 뽑으려면 --force.")
     if not LINKS.exists():
