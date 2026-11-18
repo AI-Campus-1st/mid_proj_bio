@@ -18,6 +18,10 @@
       읽고 판정). 사람 판정이 아니므로 label_final 을 사람이 확인해 채운다.
       사람 검수는 human_review = 1 인 19쌍만 한다 (2026-11-18 팀 결정 — 50쌍 전부는 부담이 커서,
       Claude 확신도가 low·medium 인 쌍 전부를 검수한다). 나머지 31쌍(확신도 high)은 Claude 판정을 그대로 쓴다.
+      단, 합의 기준(2026-11-18)과 어긋난 Claude 판정은 judge_claude 를 그대로 두고 label_final·note 에 고친 값을 적는다.
+      합의 기준: 같은 사건 = 기사가 바로 그 공시의 일을 다룬다 (같은 거래의 다른 단계, 누적액·전망 기사는 관련)
+                관련 = 직접 인과가 없어도 공시 내용이 영향을 받을 가능성이 높다 (업계 기사 속 사례 언급 포함)
+                무관 = 영향 가능성이 낮다 (행정 정정과 업계 일반 기사 등)
 실행: python analysis/sample_match.py [--force]
       판정이 이미 적힌 파일은 덮어쓰지 않는다. 새로 뽑으려면 --force (기존 판정 삭제).
       python analysis/sample_match.py --summary
@@ -116,8 +120,13 @@ def has_judgments() -> bool:
 
 
 def final_label(r: dict) -> tuple:
-    """(판정, 출처). 사람 최종 판정 → 사람 1차 판정 → Claude 판정 순."""
-    for col, src in (("label_final", "사람"), ("judge_a", "사람"), ("judge_claude", "Claude")):
+    """(판정, 출처). 사람 최종 판정 → 사람 1차 판정 → Claude 판정 순.
+
+    검수 대상(human_review = 1)이 아닌 쌍의 label_final 은 합의 기준에 맞춰 고친 값이므로 출처를 "기준"으로 둔다.
+    """
+    reviewed = (r.get("human_review") or "").strip() == "1"
+    for col, src in (("label_final", "사람" if reviewed else "기준"), ("judge_a", "사람"),
+                     ("judge_claude", "Claude")):
         if (r.get(col) or "").strip():
             return r[col].strip(), src
     return "", ""
@@ -128,7 +137,8 @@ def summary() -> str:
     with OUT.open(encoding="utf-8-sig", newline="") as f:
         rows = list(csv.DictReader(f))
     n_human = sum(1 for r in rows if final_label(r)[1] == "사람")
-    lines = [f"{len(rows)}쌍 — 사람 판정 {n_human}쌍, 나머지는 Claude 판정",
+    n_rule = sum(1 for r in rows if final_label(r)[1] == "기준")
+    lines = [f"{len(rows)}쌍 — 사람 판정 {n_human}쌍, 합의 기준으로 고친 Claude 판정 {n_rule}쌍, 나머지는 Claude 판정",
              "층 | 기업 | n | " + " | ".join(LABELS) + " | 사람 확인 | 사람=Claude"]
     for name, _, _ in PLAN:
         ko = STRATUM_KO[name]

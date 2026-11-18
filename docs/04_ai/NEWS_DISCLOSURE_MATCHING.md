@@ -1,6 +1,6 @@
 # 뉴스-공시 연계와 공시 RAG
 
-> **상태:** 설계 확정(팀 합의 2026-11-17). M1 매칭은 실제 DB로 실행(직접 창 ±3일), 표본 검수 전. M2 공시 RAG는 구현·1차 평가 완료([AI_EVALUATION](AI_EVALUATION.md) 6절). 후속 창·청크 크기처럼 아직 검증하지 않은 수치 기준은 **가설**이다 · **최종 갱신:** 2026-11-17
+> **상태:** 설계 확정(팀 합의 2026-11-17). M1 매칭은 실제 DB로 실행(직접 창 ±3일), 표본 50쌍 검수 완료([AI_EVALUATION](AI_EVALUATION.md) 7절). M2 공시 RAG는 구현·1차 평가 완료([AI_EVALUATION](AI_EVALUATION.md) 6절). 후속 창·청크 크기처럼 아직 검증하지 않은 수치 기준은 **가설**이다 · **최종 갱신:** 2026-11-18
 > **원본:** `docs/data_schema.md` 2·4·5절, `docs/02_product-requirements/PRD.md` F5, `docs/중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md` Day 5·RAG 조건
 > **관련 문서:** [masterplan](../masterplan.md) · [AI_REQUIREMENTS](AI_REQUIREMENTS.md) · [AI_EVALUATION](AI_EVALUATION.md) · [AI_CLASSIFICATION](AI_CLASSIFICATION.md) · [DART_DATA_SPEC](../03_data/DART_DATA_SPEC.md)
 
@@ -304,7 +304,7 @@ LangChain으로 `검색기 → 프롬프트 → LLM → 출력 파서` 를 잇�
 
 | 대상 | 방법 | 지표 |
 |---|---|---|
-| M1 매칭 | 연결 50쌍을 표본으로 사람이 "같은 사건 / 관련 / 무관" 판정 — **표본 추출 완료, Claude 1차 판정 완료(2026-11-18), 사람 확인 전** — 결과는 [AI_EVALUATION](AI_EVALUATION.md) 7절: 직접·당일 15쌍 중 같은 사건 10·무관 0, 직접·±1~3일 15쌍 중 무관 7, 후속 20쌍 중 같은 사건 0 (`analysis/sample_match.py` → `data/eval/match_sample.csv`. 층: 직접·당일 15 / 직접·±1~3일 15 / 후속 20, 각 층에서 삼성바이오로직스와 그 외 4개사를 나눠 뽑음) | 직접 창 정밀도, 후속 창 관련 비율. 층마다 뽑는 비율이 달라 층별로 본다 |
+| M1 매칭 | 연결 50쌍을 표본으로 사람이 "같은 사건 / 관련 / 무관" 판정 — **검수 완료(2026-11-18)**: Claude 1차 판정 50쌍 + 확신도 low·medium 19쌍은 사람 두 명이 따로 판정 후 합의 — 결과는 [AI_EVALUATION](AI_EVALUATION.md) 7절: 직접·당일 15쌍 중 같은 사건 10·무관 0, 직접·±1~3일 15쌍 중 같은 사건 2·무관 5, 후속 20쌍 중 같은 사건 0·관련 13. 판정 기준(같은 거래의 다른 단계는 관련 등)은 7-1절 (`analysis/sample_match.py` → `data/eval/match_sample.csv`. 층: 직접·당일 15 / 직접·±1~3일 15 / 후속 20, 각 층에서 삼성바이오로직스와 그 외 4개사를 나눠 뽑음) | 직접 창 정밀도, 후속 창 관련 비율. 층마다 뽑는 비율이 달라 층별로 본다 |
 | M1 시점 창 | 수주 공시 98건의 ±N일 기사 존재 비율 — **완료** (3-2절) | N별 포착률 |
 | M2 검색 | 질문 20개에 정답 공시(`rcept_no`)를 미리 지정 | 상위 5개 안에 정답 공시가 있는 비율 — **실행함: 8/14 → 검색 개선 후 12/14** (넘긴 청크 7개 기준) |
 | M2 답변 | 같은 질문 20개 (답 있음 14, 거절해야 함 6) | 근거 일치율, 거절 정확도, 환각 건수 — **실행함: 근거 일치율 12/13, 거절 정확도 6/6, 지어낸 수치 0건(다른 공시로 답한 경우 1건)** |
@@ -330,7 +330,7 @@ D1~D4·D8은 2026-11-17 팀 합의로 제안대로 확정했다. D5~D7은 제안
 | D9 | 원공시–정정 공시 연결 키 | 필요해지면 정의 | 미확인 |
 | D10 | 첨부 파일 수(약 27개 추정)와 종류 | DB에서 `seq ≥ 2` 집계로 확인 | 수는 **27개로 확인**(2026-11-17). 종류는 미확인 |
 
-구현 파일: `analysis/match_news_disclosure.py` (M1 — 실제 DB로 실행해 `news_disclosure_links.csv` 생성, 표본 검수 전). `rag/build_index.py` (청킹·임베딩·색인), `rag/qa.py` (검색·답변·검증), `rag/eval_rag.py` (평가) — M2, 구현·평가 완료. 실행 순서는 구현 후 README와 [DATA_PIPELINE](../03_data/DATA_PIPELINE.md)에 적는다.
+구현 파일: `analysis/match_news_disclosure.py` (M1 — 실제 DB로 실행해 `news_disclosure_links.csv` 생성, 표본 50쌍 검수 완료). `rag/build_index.py` (청킹·임베딩·색인), `rag/qa.py` (검색·답변·검증), `rag/eval_rag.py` (평가) — M2, 구현·평가 완료. 실행 순서는 구현 후 README와 [DATA_PIPELINE](../03_data/DATA_PIPELINE.md)에 적는다.
 
 ---
 
