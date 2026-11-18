@@ -14,7 +14,9 @@ from plotly.subplots import make_subplots
 from core import data, theme, ui
 
 LIMITS_S3 = [
-    "모달리티 태그는 LLM(gpt-6-luna, modality-v2)이 기사마다 붙였고 사람 검수 전입니다. "
+    "모달리티 태그는 LLM(gpt-6-luna, modality-v2)이 기사마다 붙였습니다. 표본 80건 검수(Claude 블라인드 판정, 사람 검수 전): "
+    "태그 정밀도 91.7%, 재현율 98.1%. 오류는 주로 배경으로 언급된 모달리티를 태깅한 경우이며, 삼성바이오로직스 기사의 "
+    "펩타이드가 다소 크게 잡혔을 수 있습니다. "
     "기사에 이름이 나온 모달리티만 붙였고, 기업의 주력 분야로 추측하지 않았습니다.",
     "제목만 있는 기사(약 74%)는 제목에 모달리티가 없으면 태그가 없어, 언급 수가 실제보다 적게 잡힙니다.",
     "히트맵 칸은 '그 기업이 언급된 기사 중 그 모달리티를 다룬 기사 수'입니다. 여러 기업이 나오는 기사(행사·업계 기사)는 "
@@ -22,7 +24,6 @@ LIMITS_S3 = [
     "이 화면은 CDMO 모달리티·생산능력 카테고리 기사만 셉니다. 모달리티 태그가 붙은 기사의 약 18%(다른 카테고리, 예: ADC 수주 기사)는 빠집니다.",
     "'기타' 태그(저분자·오가노이드 등)는 CDMO 생산 모달리티로 보기 어려워 표시하지 않습니다.",
 ]
-TAG_BADGE = ":gray-badge[AI 생성]"
 SEQ_DARK_TEXT = {"#256ABF", "#184F95", "#0D366B"}   # 순차 8~10단계 칸은 흰 글자 (2-3절 대비 검증)
 
 
@@ -177,7 +178,7 @@ def _evidence(tagged: pd.DataFrame, matrix: pd.DataFrame) -> None:
         ids = set(nc[nc.corp_name == corp].news_id)
         hit = (tagged[(tagged.modality == mod) & tagged.news_id.isin(ids)]
                .drop_duplicates("news_id").sort_values("date", ascending=False))
-        st.caption(f"{corp} · {mod}: {len(hit):,}건 (최근 20건) {TAG_BADGE}")
+        st.caption(f"{corp} · {mod}: {len(hit):,}건 (최근 20건)")
         for r in hit.head(20).to_dict("records"):
             ui.news_line(r)
             if r["evidence"]:
@@ -229,7 +230,7 @@ def render():
     st.divider()
 
     fkey = abs(hash((str(filters["period"]), tuple(filters["companies"]), tuple(kws))))
-    st.markdown(f"#### 모달리티별 언급 추이 {TAG_BADGE}")
+    st.markdown("#### 모달리티별 언급 추이")
     if tagged.empty:
         ui.empty("기사", "S3-C1")
     else:
@@ -246,7 +247,7 @@ def render():
                            "한 기사에 태그가 여러 개면 각 모달리티에 셉니다.")
 
     head, ctl = st.columns([3, 2], vertical_alignment="bottom")
-    head.markdown(f"#### 기업 × 모달리티 {TAG_BADGE}")
+    head.markdown("#### 기업 × 모달리티")
     view = ctl.segmented_control("값", ["기사 수", "기업 내 비율"], key="s3_heat_value", default="기사 수",
                                  required=True)
     matrix = _company_matrix(tagged, filters["companies"])
