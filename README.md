@@ -29,6 +29,7 @@
 | `db/` | 적재 계층 — 통합 스키마(`schema.sql`)와 DB 구축(`build_db.py`) |
 | `analysis/` | 분석 계층 — 기업 선정용 공시 가중 점수, 뉴스 통합·재분류, 텍스트 정제(`clean_text.py`), EDA(`eda.py`) |
 | `rag/` | 공시 RAG — 색인(`build_index.py`), 질의응답(`qa.py`), 평가(`eval_rag.py`) |
+| `dashboard/` | Streamlit 대시보드 — 실행 파일(`app.py`), 공통(`core/`: 화면 부품·필터·데이터 읽기·색), 화면(`views/` S0~S6). 테마는 루트 `.streamlit/config.toml` |
 | `data/raw/` | 수집 원본 (JSON, JSONL, zip) |
 | `data/processed/` | 분석 산출물 — 기업 선정 점수, EDA 집계표(`eda_*.csv`) |
 | `data/db/` | 통합 DB `bio_cdmo.sqlite` (git 제외, 아래 순서로 재생성) |
@@ -153,6 +154,16 @@ python rag/qa.py "SK바이오사이언스의 RSV 예방항체 기술도입 계�
 ```bash
 python rag/eval_rag.py
 ```
+
+## 실행 — 대시보드
+
+저장소 루트에서 실행한다(루트의 `.streamlit/config.toml` 테마를 읽는다). 통합 DB(`data/db/bio_cdmo.sqlite`)가 있어야 하고, 공시 Q&A 화면은 `chroma_db/` 와 `.env` 의 `OPENAI_API_KEY` 도 필요하다. 없으면 그 화면만 "설정 확인" 안내를 띄우고 다른 화면은 동작한다. Q&A는 질문할 때만 API를 호출한다(질문 한 번에 1센트 미만).
+
+```bash
+streamlit run dashboard/app.py
+```
+
+현재 구현: 뼈대(메뉴·사이드바 필터·공통 부품·테마)와 S6 공시 Q&A. 나머지 화면은 "준비 중" 표시 (2026-11-18).
 
 ## 기업 선정 근거 재현
 
