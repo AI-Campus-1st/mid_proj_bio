@@ -14,7 +14,7 @@ from plotly.subplots import make_subplots
 from core import data, theme, ui
 
 LIMITS_S3 = [
-    "모달리티 태그는 LLM(gpt-6-luna, modality-v2)이 기사마다 붙였습니다. 표본 80건 검수(Claude 블라인드 판정, 사람 검수 전): "
+    "모달리티 태그는 LLM(gpt-6-luna, modality-v2)이 기사마다 붙였습니다. 표본 80건 검수(1차 판정 Claude 블라인드, 사람 확인): "
     "태그 정밀도 91.7%, 재현율 98.1%. 오류는 주로 배경으로 언급된 모달리티를 태깅한 경우이며, 삼성바이오로직스 기사의 "
     "펩타이드가 다소 크게 잡혔을 수 있습니다. "
     "기사에 이름이 나온 모달리티만 붙였고, 기업의 주력 분야로 추측하지 않았습니다.",
