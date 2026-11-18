@@ -60,7 +60,7 @@ companies ──< news_companies >── news ──── news_clean   (정제 
 | `cdmo_rel_basis` | CDMO 관련 근거: `title` / `body` / `query` / `none` |
 | `cdmo_kw_basis` | CDMO 키워드 근거: `title` / `body` / `query` / `none` |
 | `lang` | 기사 언어 `ko` / `en`. `en` 은 대시보드에서 한국어로 번역해 보여준다 |
-| `title_ko` | 한국어 번역 제목 캐시. 적재 시 NULL이고 번역 단계에서 채운다. DB를 다시 빌드하면 비워진다 |
+| `title_ko` | 한국어 번역 제목 캐시. 적재 시 NULL이고 번역 단계(`analysis/translate_titles.py`)에서 채운다. 번역 결과는 `data/processed/title_ko.csv` 에도 저장되어, DB를 다시 빌드하면 `build_db.py` 가 그 파일로 다시 채운다 |
 
 영어 기사의 `cdmo_mention` 과 기업 매핑(`news_companies`)은 영어 패턴(`collect/config.py` 의 `CDMO_PATTERN_EN`, `COMPANY_PATTERNS_EN`)으로 판정한다. 한국어 기사의 판정 규칙은 그대로이다.
 

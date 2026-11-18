@@ -143,7 +143,7 @@ def load_news(con, corp) -> None:
                 canon.setdefault(tn, []).append((d, i))
         text = r["title"] + " " + (r["body"] or "")
         lang = r["lang"]
-        # title_ko(번역 캐시)는 적재 시 NULL로 두고 번역 단계에서 채운다
+        # title_ko(번역 캐시)는 적재 시 NULL로 두고, 뒤의 load_title_ko() 가 번역 결과 파일에서 채운다
         con.execute("INSERT INTO news (news_id, origin, title, body, url, published_at, "
                     "published_date, press, body_len, cdmo_mention, title_norm, dup_of, "
                     "search_terms, cdmo_rel_basis, cdmo_kw_basis, lang) "
@@ -169,6 +169,22 @@ def load_news(con, corp) -> None:
             else:
                 continue
             con.execute("INSERT INTO news_companies VALUES (?,?,?)", (i, corp[name], field))
+
+
+TITLE_KO = ROOT / "data" / "processed" / "title_ko.csv"   # analysis/translate_titles.py 결과
+
+
+def load_title_ko(con) -> None:
+    """영어 기사 번역 제목(title_ko)을 번역 결과 파일에서 다시 채운다.
+
+    번역은 LLM 비용이 들어 DB 를 다시 빌드할 때마다 새로 돌리지 않는다. URL 키 파일에 저장해 두고
+    빌드 때 읽는다 (AI_CLASSIFICATION 5절). 파일이 없으면 title_ko 는 NULL 로 남는다.
+    """
+    if not TITLE_KO.exists():
+        return
+    with TITLE_KO.open(encoding="utf-8-sig", newline="") as f:
+        rows = [(r["title_ko"], r["url"]) for r in csv.DictReader(f) if r.get("title_ko")]
+    con.executemany("UPDATE news SET title_ko = ? WHERE url = ? AND lang = 'en'", rows)
 
 
 # ---------------------------------------------------------------- 공시
@@ -252,6 +268,7 @@ def main():
         con.execute("INSERT INTO companies VALUES (?,?,?,NULL,'CDMO')",
                     (corp[name], name, codes[name]["stock_code"]))
     load_news(con, corp)
+    load_title_ko(con)
     load_disclosures(con, corp)
     for k, v in {"period_start": DB_START.isoformat(), "period_end": DB_END.isoformat(),
                  "built_at": datetime.now(KST).strftime("%Y-%m-%dT%H:%M:%S"),
@@ -267,6 +284,7 @@ def main():
     for t in ("companies", "news", "news_clean", "news_keywords", "news_cdmo_keywords", "news_companies", "disclosures",
               "disclosure_documents"):
         print(f"  {t}: {con.execute(f'SELECT COUNT(*) FROM {t}').fetchone()[0]}")
+    print(f"  news.title_ko (영어 기사 번역): {con.execute('SELECT COUNT(title_ko) FROM news').fetchone()[0]}")
     con.close()
 
 
