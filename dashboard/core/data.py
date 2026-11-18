@@ -173,3 +173,124 @@ def sentiment_frame() -> pd.DataFrame:
     df = df[df.label.isin(["기회", "위험", "중립"])]
     return df[["url", "label", "reason", "confidence", "input_basis", "model", "prompt_version"]] \
         .drop_duplicates("url")
+
+
+# ---------------------------------------------------------------- 모달리티 태그 (S3)
+
+MODALITY_PATH = PROCESSED / "modality_llm.csv"
+# 히트맵·추이에 쓰는 7개. "기타"(저분자·오가노이드 등)는 CDMO 생산 모달리티로 보기 어려워 화면에서 뺀다
+# (AI_CLASSIFICATION 4-1절).
+MODALITIES = ["항체", "ADC", "mRNA", "세포·유전자치료제", "올리고", "펩타이드", "백신"]
+S3_KEYWORDS = ["CDMO 모달리티", "CDMO 생산능력"]   # UI_SPECIFICATION 4-3절 S3 교집합
+
+
+@st.cache_data(show_spinner=False)
+def modality_frame() -> pd.DataFrame:
+    """기사 × 모달리티 1행 (태그가 여러 개면 여러 행). 성공한 태깅만, '기타' 제외."""
+    df = pd.read_csv(MODALITY_PATH, dtype=str).fillna("")
+    df = df[(df.error == "") & (df.modalities != "")]
+    df = df.assign(modality=df.modalities.str.split("; ")).explode("modality")
+    return df[df.modality.isin(MODALITIES)][["url", "modality", "evidence", "confidence", "input_basis"]]
+
+
+def s3_keywords(filters: dict) -> list:
+    return [k for k in S3_KEYWORDS if k in filters["keywords"]]
+
+
+def filter_s3_news(filters: dict) -> pd.DataFrame:
+    """S3 기사: 사이드바 필터 + 카테고리는 모달리티·생산능력과의 교집합만 (4-3절). 교집합이 없으면 빈 표."""
+    kws = s3_keywords(filters)
+    if not kws:
+        return news_frame().iloc[0:0]
+    df = filter_news({**filters, "keywords": list(KEYWORDS)})   # 기간·기업만
+    kw = news_keywords()
+    return df[df.news_id.isin(kw[kw.keyword.isin(kws)].news_id)]
+
+
+# ---------------------------------------------------------------- 공시 (S3·S4)
+
+# NEWS_DISCLOSURE_MATCHING 3-3절 대응표의 직접·후속 열을 합친 집합 (UI_SPECIFICATION 4-3절 S4, 미결 Q8)
+KEYWORD_EVENTS = {
+    "CDMO 수주": {"수주", "실적"},
+    "CDMO 생산능력": {"증설", "자금조달", "수주"},
+    "CDMO 경쟁 구도": {"M&A·구조개편", "수주", "증설"},
+    "CDMO 모달리티": {"임상·허가·기술계약", "증설", "수주"},
+    "CDMO 규제·정책": {"수주", "증설", "M&A·구조개편"},
+    "CDMO 지정학": {"수주", "증설", "M&A·구조개편"},
+}
+MAIN_EVENTS = ["수주", "증설", "M&A·구조개편", "자금조달"]   # S4 주요 4분류 (UI_SPECIFICATION 5-5절)
+
+
+@st.cache_data(show_spinner=False)
+def disclosures_frame() -> pd.DataFrame:
+    con = connect()
+    try:
+        df = pd.read_sql(
+            "SELECT d.rcept_no, d.rcept_date, c.corp_name, d.report_nm, d.event_class, d.is_amended, d.url "
+            "FROM disclosures d JOIN companies c USING (corp_code)", con)
+    finally:
+        con.close()
+    df["date"] = pd.to_datetime(df.rcept_date)
+    return df
+
+
+def filter_disclosures(filters: dict, event_classes=None) -> pd.DataFrame:
+    """4-2절 공시 규칙: 제출일이 기간 안, 선택 기업. event_classes 가 있으면 그 분류만."""
+    df = disclosures_frame()
+    s, e = filters["period"]
+    df = df[(df.date >= pd.Timestamp(s)) & (df.date <= pd.Timestamp(e)) & df.corp_name.isin(filters["companies"])]
+    if event_classes is not None:
+        df = df[df.event_class.isin(event_classes)]
+    return df
+
+
+def keyword_events(filters: dict) -> set:
+    return set().union(*(KEYWORD_EVENTS[k] for k in filters["keywords"])) if filters["keywords"] else set()
+
+
+# ---------------------------------------------------------------- 수주 계약 금액 (S4)
+
+AMOUNTS_PATH = PROCESSED / "contract_amounts.csv"
+
+
+@st.cache_data(show_spinner=False)
+def contract_amounts() -> tuple:
+    """(원공시 표, 정정 공시 표). 원공시 1행에 최신 정정본 금액을 붙인다 (eda_report 5절).
+
+    정정 공시는 original_date(정정 대상 공시의 제출일)로 같은 기업의 원공시를 찾는다. 정정의 정정이면
+    대상이 정정 공시이므로 그 정정의 원공시까지 따라간다. 같은 원공시의 정정이 여러 건이면 가장 늦은 것.
+    원공시가 DB 기간 밖(2017~2023년 계약)인 정정은 matched=False 로 남긴다.
+    """
+    df = pd.read_csv(AMOUNTS_PATH, dtype=str).fillna("")
+    df["is_amended"] = df.is_amended.astype(int)
+    df["amount"] = pd.to_numeric(df.amount_krw, errors="coerce")
+    orig = df[df.is_amended == 0].copy()
+    amended = df[df.is_amended == 1].copy()
+    # (기업, 제출일) → 원공시 rcept_no. 같은 날 원공시가 2건 이상이면 어느 것의 정정인지 알 수 없어 연결하지 않는다
+    # 해지 공시는 정정 대상(계약 체결)이 아니다. 프레스티지 2026-04-30 정정은 원공시 제출일을 해지 공시와 같은 날로
+    # 적어 두어, 해지를 빼지 않으면 해지 공시에 금액이 붙는다.
+    key = orig[~orig.report_nm.str.contains("해지")].groupby(["corp_name", "rcept_date"]).rcept_no.agg(list)
+    origin_of = {k: v[0] for k, v in key.items() if len(v) == 1}
+    amend_target = {(r.corp_name, r.rcept_date): r.original_date for r in amended.itertuples()}
+
+    def resolve(corp: str, date: str):
+        for _ in range(5):                       # 정정의 정정 (실제는 2단계 이내)
+            if (corp, date) in origin_of:
+                return origin_of[(corp, date)]
+            if (corp, date) not in amend_target:
+                return None
+            date = amend_target[(corp, date)]
+        return None
+
+    amended["target"] = [resolve(c, d) for c, d in zip(amended.corp_name, amended.original_date)]
+    latest = (amended[amended.target.notna() & amended.amount.notna()]
+              .sort_values(["rcept_date", "rcept_no"]).groupby("target").last())
+    n_amend = amended[amended.target.notna()].groupby("target").size()
+    orig["first_amount"] = orig.amount
+    orig["n_amended"] = orig.rcept_no.map(n_amend).fillna(0).astype(int)
+    orig["amount"] = orig.rcept_no.map(latest.amount).fillna(orig.amount)
+    orig["latest_amend_date"] = orig.rcept_no.map(latest.rcept_date).fillna("")
+    orig["date"] = pd.to_datetime(orig.rcept_date)
+    amended["matched"] = amended.target.notna()
+    amended["date"] = pd.to_datetime(amended.rcept_date)
+    return orig, amended
