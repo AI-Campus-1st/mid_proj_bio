@@ -294,3 +294,31 @@ def contract_amounts() -> tuple:
     amended["matched"] = amended.target.notna()
     amended["date"] = pd.to_datetime(amended.rcept_date)
     return orig, amended
+
+
+# ---------------------------------------------------------------- 뉴스-공시 연결 (S5)
+
+LINKS_PATH = PROCESSED / "news_disclosure_links.csv"
+
+
+@st.cache_data(show_spinner=False)
+def links_frame() -> pd.DataFrame:
+    """M1 매칭 결과 (기사 url × 공시 rcept_no). news_keyword 는 '; ' 로 이어진 대표 키워드 목록."""
+    df = pd.read_csv(LINKS_PATH, dtype=str).fillna("")
+    for col in ("day_gap", "class_weight", "is_amended", "kw_low_confidence", "follow_cut"):
+        df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
+    df["date"] = pd.to_datetime(df.published_date)
+    df["keywords"] = df.news_keyword.map(lambda s: [k for k in s.split("; ") if k])
+    return df
+
+
+def filter_links(filters: dict) -> pd.DataFrame:
+    """4-2절 연결 규칙: 기사 발행일이 기간 안, 선택 기업, 선택 키워드가 하나라도 있는 행.
+    키워드가 빈 행(리스크 공시 107행)은 카테고리 6개 전체일 때만 넣는다 (미결 Q8)."""
+    df = links_frame()
+    s, e = filters["period"]
+    df = df[(df.date >= pd.Timestamp(s)) & (df.date <= pd.Timestamp(e)) & df.corp_name.isin(filters["companies"])]
+    sel = set(filters["keywords"])
+    all_kw = len(sel) == len(KEYWORDS)
+    keep = df.keywords.map(lambda ks: bool(sel & set(ks)) if ks else all_kw)
+    return df[keep]
