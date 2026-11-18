@@ -80,10 +80,10 @@ docs/
 | | [USER_FLOW](05_design/USER_FLOW.md) | 시나리오별 화면 이동 흐름 | 📝 |
 | | [WIREFRAME](05_design/WIREFRAME.md) | 화면별 배치 | 🔶 초안(2026-11-17) — S0~S6 배치·상태 표시 |
 | | [UI_SPECIFICATION](05_design/UI_SPECIFICATION.md) | 컴포넌트 동작·표시 규칙 | 🔶 초안(2026-11-17) — 디자인 토큰·테마, 공통 컴포넌트, 필터, S0~S6 컴포넌트, 표시 규칙·문구, AC 추적. U1~U5·미결 Q1~Q18 팀 확인 전 |
-| **06 technical** | [SYSTEM_ARCHITECTURE](06_technical/SYSTEM_ARCHITECTURE.md) | 계층 구조, 구성 요소, 실행 환경 | 📝 |
-| | [API_SPECIFICATION](06_technical/API_SPECIFICATION.md) | 외부 API, 내부 조회 인터페이스, RAG 입출력 | 📝 |
+| **06 technical** | [SYSTEM_ARCHITECTURE](06_technical/SYSTEM_ARCHITECTURE.md) | 계층 구조, 구성 요소, 실행 환경 | ✅ (2026-11-18) — 과제 가이드 5·6절 원문 대조는 미확인 |
+| | [API_SPECIFICATION](06_technical/API_SPECIFICATION.md) | 외부 API, 내부 조회 인터페이스, RAG 입출력 | ✅ (2026-11-18) |
 | | [DATABASE_SCHEMA](06_technical/DATABASE_SCHEMA.md) | 통합 DB 스키마 공식 문서 | ✅ (2026-11-18) — DB 밖 산출물 연결·재빌드 시 보존 포함 |
-| | [TECH_STACK](06_technical/TECH_STACK.md) | 도구·버전·선택 이유 | 📝 |
+| | [TECH_STACK](06_technical/TECH_STACK.md) | 도구·버전·선택 이유 | ✅ (2026-11-18) — 설치만 되고 쓰지 않는 패키지 목록 포함 |
 | **07 project-management** | [MILESTONES](07_project-management/MILESTONES.md) | 단계별 완료 조건과 실제 완료일, 릴리스 기록 | 📝 |
 | | [TASKS](07_project-management/TASKS.md) | 작업·담당자·상태 | 📝 |
 | | [DECISIONS](07_project-management/DECISIONS.md) | 주요 결정과 이유 (ADR) | 📝 |
