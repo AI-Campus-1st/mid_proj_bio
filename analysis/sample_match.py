@@ -16,10 +16,13 @@
         무관     = 기업만 같고 내용이 이어지지 않는다
       judge_claude·claude_confidence·claude_reason 은 Claude 의 1차 판정이다 (2026-11-18, 기사 본문·공시 원문을
       읽고 판정). 사람 판정이 아니므로 label_final 을 사람이 확인해 채운다.
+      사람 검수는 human_review = 1 인 19쌍만 한다 (2026-11-18 팀 결정 — 50쌍 전부는 부담이 커서,
+      Claude 확신도가 low·medium 인 쌍 전부를 검수한다). 나머지 31쌍(확신도 high)은 Claude 판정을 그대로 쓴다.
 실행: python analysis/sample_match.py [--force]
       판정이 이미 적힌 파일은 덮어쓰지 않는다. 새로 뽑으려면 --force (기존 판정 삭제).
       python analysis/sample_match.py --summary
-      층별 판정 집계만 출력한다. label_final 이 있으면 그 값을, 없으면 judge_claude 를 센다.
+      층별 판정 집계만 출력한다. 쌍마다 label_final → judge_a → judge_claude 순으로 먼저 있는 값을 센다.
+      층마다 사람이 확인한 쌍 수와, 사람 판정과 Claude 판정의 일치 수를 함께 출력한다.
 주의: 층마다 뽑는 비율이 다르므로 50쌍 전체의 비율을 그대로 전체 정밀도로 쓰면 안 된다. 층별로 본다.
 """
 import csv
@@ -41,12 +44,15 @@ EXCERPT_CHARS = 400      # 공시 원문 앞부분을 이만큼 함께 보여 �
 # 층별 표본 수: (창 구분, 삼성바이오로직스, 그 외)
 PLAN = [("direct_same_day", 10, 5), ("direct_near", 10, 5), ("follow", 12, 8)]
 STRATUM_KO = {"direct_same_day": "직접·당일", "direct_near": "직접·±1~3일", "follow": "후속"}
+# 사람 검수 대상 (2026-11-18 팀 결정). 표본을 다시 뽑으면 이 목록도 다시 정해야 한다.
+HUMAN_REVIEW = ["M03", "M05", "M08", "M09", "M18", "M19", "M21", "M22", "M28", "M29", "M30", "M35", "M40",
+                "M43", "M44", "M45", "M47", "M48", "M50"]
 JUDGE_COLS = ["judge_claude", "claude_confidence", "claude_reason", "judge_a", "judge_b", "label_final", "note"]
 LABELS = ["같은 사건", "관련", "무관"]
 COLS = ["pair_id", "stratum", "window", "day_gap", "corp_name",
         "news_date", "news_title", "press", "news_keyword", "kw_low_confidence", "news_url",
         "rcept_date", "report_nm", "event_class", "is_amended", "disclosure_excerpt", "dart_url",
-        "rcept_no"] + JUDGE_COLS
+        "rcept_no", "human_review"] + JUDGE_COLS
 
 
 def stratum_of(row: dict) -> str:
@@ -95,6 +101,7 @@ def enrich(rows: list) -> list:
             "rcept_date": r["rcept_date"], "report_nm": r["report_nm"], "event_class": r["event_class"],
             "is_amended": r["is_amended"], "disclosure_excerpt": text[:EXCERPT_CHARS],
             "dart_url": disc[0], "rcept_no": r["rcept_no"],
+            "human_review": "",
             **{c: "" for c in JUDGE_COLS},
         })
     con.close()
@@ -108,22 +115,31 @@ def has_judgments() -> bool:
         return any(any((r.get(c) or "").strip() for c in JUDGE_COLS) for r in csv.DictReader(f))
 
 
+def final_label(r: dict) -> tuple:
+    """(판정, 출처). 사람 최종 판정 → 사람 1차 판정 → Claude 판정 순."""
+    for col, src in (("label_final", "사람"), ("judge_a", "사람"), ("judge_claude", "Claude")):
+        if (r.get(col) or "").strip():
+            return r[col].strip(), src
+    return "", ""
+
+
 def summary() -> str:
-    """층 × 기업 × 판정 집계. label_final 이 비어 있으면 judge_claude 를 쓴다."""
+    """층 × 기업 × 판정 집계. 쌍마다 사람 판정이 있으면 그것을, 없으면 Claude 판정을 센다."""
     with OUT.open(encoding="utf-8-sig", newline="") as f:
         rows = list(csv.DictReader(f))
-    n_final = sum(1 for r in rows if r["label_final"].strip())
-    source = "label_final" if n_final == len(rows) else ("judge_claude" if n_final == 0 else None)
-    if source is None:
-        return f"label_final 이 {n_final}/{len(rows)}개만 채워져 있다. 다 채운 뒤 집계한다."
-    lines = [f"판정 출처: {source} ({len(rows)}쌍)", "층 | 기업 | n | " + " | ".join(LABELS)]
+    n_human = sum(1 for r in rows if final_label(r)[1] == "사람")
+    lines = [f"{len(rows)}쌍 — 사람 판정 {n_human}쌍, 나머지는 Claude 판정",
+             "층 | 기업 | n | " + " | ".join(LABELS) + " | 사람 확인 | 사람=Claude"]
     for name, _, _ in PLAN:
         ko = STRATUM_KO[name]
         for label, cond in (("삼성", lambda r: r["corp_name"] == BIG), ("그 외", lambda r: r["corp_name"] != BIG),
                             ("계", lambda r: True)):
             sub = [r for r in rows if r["stratum"] == ko and cond(r)]
-            c = Counter(r[source] for r in sub)
-            lines.append(f"{ko} | {label} | {len(sub)} | " + " | ".join(str(c[x]) for x in LABELS))
+            c = Counter(final_label(r)[0] for r in sub)
+            human = [r for r in sub if final_label(r)[1] == "사람"]
+            agree = sum(1 for r in human if final_label(r)[0] == r["judge_claude"])
+            lines.append(f"{ko} | {label} | {len(sub)} | " + " | ".join(str(c[x]) for x in LABELS)
+                         + f" | {len(human)} | {agree}")
     return "\n".join(lines)
 
 
