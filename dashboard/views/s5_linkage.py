@@ -200,8 +200,7 @@ def _issue_table(links: pd.DataFrame, filters: dict) -> None:
 def render():
     filters = st.session_state["filters"]
     ui.header("뉴스-공시 연계", "뉴스의 변화가 공시로 확인되는가?", filters)
-    if not filters["companies"]:
-        ui.empty("기사/공시", "S5")
+    if ui.no_selection(filters, "S5"):
         ui.limits(LIMITS_S5)
         return
     try:

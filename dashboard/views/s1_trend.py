@@ -207,6 +207,9 @@ def _spike_detail(spikes: pd.DataFrame) -> None:
 def render():
     filters = st.session_state["filters"]
     ui.header("이슈·트렌드", "지금 가장 많이 다뤄지는 이슈는?", filters)
+    if ui.no_selection(filters, "S1"):
+        ui.limits(LIMITS_S1)
+        return
     try:
         with st.spinner("데이터를 불러오는 중"):
             news = data.filter_news(filters)

@@ -29,6 +29,7 @@
 | `db/` | 적재 계층 — 통합 스키마(`schema.sql`)와 DB 구축(`build_db.py`) |
 | `analysis/` | 분석 계층 — 기업 선정용 공시 가중 점수, 뉴스 통합·재분류, 텍스트 정제(`clean_text.py`), EDA(`eda.py`) |
 | `rag/` | 공시 RAG — 색인(`build_index.py`), 질의응답(`qa.py`), 평가(`eval_rag.py`) |
+| `tests/` | 대시보드 통합 점검 — 7개 화면 × 필터 조합 자동 실행(`check_dashboard_filters.py`, API 호출 없음). 결과는 `docs/07_project-management/TEST_PLAN.md` |
 | `dashboard/` | Streamlit 대시보드 — 실행 파일(`app.py`), 공통(`core/`: 화면 부품·필터·데이터 읽기·색), 화면(`views/` S0~S6). 테마는 루트 `.streamlit/config.toml` |
 | `data/raw/` | 수집 원본 (JSON, JSONL, zip) |
 | `data/processed/` | 분석 산출물 — 기업 선정 점수, EDA 집계표(`eda_*.csv`) |

@@ -133,6 +133,9 @@ def render():
     filters = st.session_state["filters"]
     ui.header("규제·정책", "정책·규제 변화는 CDMO 시장에 기회인가 위험인가?", filters,
               screen_scope="규제·정책, 지정학")
+    if not filters["companies"] and ui.no_selection(filters, "S2"):   # 카테고리 0개는 아래 교집합 안내로
+        ui.limits(LIMITS_S2)
+        return
     if not any(k in filters["keywords"] for k in SCREEN_KEYWORDS):
         st.info("이 화면은 규제·정책, 지정학 기사만 다룹니다. 사이드바 카테고리에 이 중 하나 이상을 넣으세요.")
         ui.limits(LIMITS_S2)

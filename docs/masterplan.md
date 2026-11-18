@@ -28,7 +28,7 @@
 | Day 3 전처리·EDA | 완료 (2026-11-16 — 중복 처리·재분류, 텍스트 정제, EDA·급증 시점) | `docs/news_sort.md`, `docs/eda_report.md` |
 | Day 4 AI 이슈 추출 | **종료 조건 충족** (감성 분류 결과·검수 결과 존재) — 감성 분류 전체 4,727건, 표본 180건 검수(정확도 85.0%). 이슈 키워드 추출 4,727건(실패 0)·이슈 이름 묶기 3,581개 → 2,706그룹 완료, **사람 검수 없음**. 모달리티 태깅·번역 미착수 (2026-11-18) | 04_ai |
 | Day 5 RAG 공시 Q&A | **종료 조건 충족** (근거 공시와 함께 답변, 명령줄 기준) — 공시 864건 → 청크 36,548개 색인, `rag/qa.py` 검색·답변·근거 공시·거절, 대시보드용 반환값(`answer_display`·`citations`·`flags`·`QAError`). 평가 질문 20개: 검색 12/14, 거절 6/6. 뉴스-공시 매칭 7,135쌍, 표본 50쌍 검수 완료(직접·당일 같은 사건 10/15, 2026-11-18). 대시보드 화면 연결은 Day 6 "공시 Q&A 통합"에서 | 04_ai |
-| Day 6 대시보드 | 설계 초안만 — IA·WIREFRAME·UI_SPECIFICATION 초안(2026-11-17, U1~U5·Q1~Q18 팀 확인 전), `dashboard/views/` 에 "준비 중" 자리표시 5개. 앱 실행 파일·공통 UI·차트·필터·Q&A 화면 구현 전 | 05_design, 06_technical |
+| Day 6 대시보드 | **종료 조건 충족** (필터가 모든 차트에 반영 — 7화면 × 필터 18조합 자동 점검 오류 0건, [TEST_PLAN](07_project-management/TEST_PLAN.md) 2절) — S0~S6 7개 화면 구현(이슈 트렌드·감성 추이 차트, 사이드바 필터, 공시 Q&A 통합, S0 결론·카드). 남은 것: 영어 제목 번역, 부상 이슈 증가율(미결 Q6), 연결 없는 기사 비율(Q12), 해외 CDMO 언급(Q7), UI 명세 U1~U5 팀 확인 (2026-11-18) | 05_design, 06_technical |
 | Day 7 고도화·발표 | 미착수 | 07_project-management |
 
 상세 일정과 우선순위는 [PRODUCT_ROADMAP](02_product-requirements/PRODUCT_ROADMAP.md).
@@ -86,7 +86,7 @@ docs/
 | **07 project-management** | [MILESTONES](07_project-management/MILESTONES.md) | 단계별 완료 조건과 실제 완료일, 릴리스 기록 | 📝 |
 | | [TASKS](07_project-management/TASKS.md) | 작업·담당자·상태 | 📝 |
 | | [DECISIONS](07_project-management/DECISIONS.md) | 주요 결정과 이유 (ADR) | 📝 |
-| | [TEST_PLAN](07_project-management/TEST_PLAN.md) | 검수 방법과 결과 기록 | 📝 |
+| | [TEST_PLAN](07_project-management/TEST_PLAN.md) | 검수 방법과 결과 기록 | 🔶 대시보드 통합 점검·제출 전 점검 기록(2026-11-18). 데이터 검증 SQL 작성 전 |
 
 ### 3-3. 문서 간 연결
 

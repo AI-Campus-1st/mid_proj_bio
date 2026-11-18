@@ -320,5 +320,6 @@ def filter_links(filters: dict) -> pd.DataFrame:
     df = df[(df.date >= pd.Timestamp(s)) & (df.date <= pd.Timestamp(e)) & df.corp_name.isin(filters["companies"])]
     sel = set(filters["keywords"])
     all_kw = len(sel) == len(KEYWORDS)
-    keep = df.keywords.map(lambda ks: bool(sel & set(ks)) if ks else all_kw)
+    # astype(bool): 0행일 때 map 결과가 object 형이라 df[keep] 이 열 선택으로 읽혀 열이 사라지는 것을 막는다
+    keep = df.keywords.map(lambda ks: bool(sel & set(ks)) if ks else all_kw).astype(bool)
     return df[keep]

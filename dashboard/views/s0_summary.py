@@ -106,6 +106,9 @@ def _search_box() -> None:
 def render():
     filters = st.session_state["filters"]
     ui.header("요약", "지금 주목할 기회와 위험 요인은 무엇인가?", filters)
+    if ui.no_selection(filters, "S0"):
+        ui.limits(LIMITS_S0)
+        return
     try:
         summary = _load_cards()
     except FileNotFoundError:

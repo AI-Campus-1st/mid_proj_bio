@@ -54,6 +54,17 @@ def empty(kind: str, key: str) -> None:
         st.button("필터 초기화", key=f"empty_reset_{key}", on_click=flt.reset)
 
 
+def no_selection(filters: dict, key: str) -> bool:
+    """기업이나 카테고리를 0개 고르면 화면 전체를 빈 결과로 둔다 (4-1절 "화면은 빈 결과 상태"). True 면 그리지 않는다."""
+    if filters["companies"] and filters["keywords"]:
+        return False
+    missing = "기업" if not filters["companies"] else "카테고리"
+    with st.container(border=True):
+        st.markdown(f"사이드바에서 {missing}을(를) 1개 이상 고르세요. 지금은 해당하는 기사·공시가 없습니다.")
+        st.button("필터 초기화", key=f"empty_reset_{key}", on_click=flt.reset)
+    return True
+
+
 def data_error(path, err: Exception) -> None:
     st.error(f"데이터를 읽지 못했습니다: {path}  \nREADME의 실행 순서에 따라 데이터를 먼저 만드세요.")
     with st.expander("오류 내용"):
