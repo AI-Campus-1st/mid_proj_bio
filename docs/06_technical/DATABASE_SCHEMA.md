@@ -54,7 +54,7 @@ meta (빌드 정보)
 | `corp_code` (PK) | DART 고유번호 |
 | `corp_name` | DART 회사명 |
 | `stock_code` | 종목코드 |
-| `corp_cls` | Y 유가증권 / K 코스닥 (현재 적재 시 NULL) |
+| `corp_cls` | Y 유가증권 / K 코스닥. 공시 목록(`list.json`)의 값으로 채운다 — 삼성바이오로직스·SK바이오사이언스 Y, 에스티팜·바이넥스·프레스티지바이오로직스 K |
 | `sector` | CDMO |
 
 ### news — 뉴스 1건 = 1행

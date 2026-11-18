@@ -67,9 +67,9 @@ docs/
 | | [USER_STORIES](02_product-requirements/USER_STORIES.md) | 에픽 E1~E7, 스토리 US-01~18, 시나리오 연결 | ✅ |
 | | [ACCEPTANCE_CRITERIA](02_product-requirements/ACCEPTANCE_CRITERIA.md) | 검수 기준 AC-01~18, 반영·근거·데이터 점검, 제출 전 점검 | ✅ |
 | | [PRODUCT_ROADMAP](02_product-requirements/PRODUCT_ROADMAP.md) | Day 1~7 단계와 현황, 완료 작업, 다음 우선순위, 확장 | ✅ |
-| **03 data** | [NEWS_DATA_SPEC](03_data/NEWS_DATA_SPEC.md) | 뉴스 출처 5종, 원본·통합본 형식, 품질 | 📝 |
-| | [DART_DATA_SPEC](03_data/DART_DATA_SPEC.md) | 기업 선정 근거, DART API, 공시 분류·가중치 | 📝 |
-| | [NEWS_CLASSIFICATION](03_data/NEWS_CLASSIFICATION.md) | 카테고리·CDMO 키워드 6개, 규칙 기반 분류, 중복 판정 | 📝 |
+| **03 data** | [NEWS_DATA_SPEC](03_data/NEWS_DATA_SPEC.md) | 뉴스 출처 5종, 원본·통합본 형식, 품질 | ✅ (2026-11-18) |
+| | [DART_DATA_SPEC](03_data/DART_DATA_SPEC.md) | 기업 선정 근거, DART API, 공시 분류·가중치 | ✅ (2026-11-18) |
+| | [NEWS_CLASSIFICATION](03_data/NEWS_CLASSIFICATION.md) | 카테고리·CDMO 키워드 6개, 규칙 기반 분류, 중복 판정 | ✅ (2026-11-18) |
 | | [DATA_PIPELINE](03_data/DATA_PIPELINE.md) | 수집 → 재분류 → 적재 → AI → 대시보드 흐름, 재실행 | ✅ (2026-11-18) |
 | **04 ai** | [AI_REQUIREMENTS](04_ai/AI_REQUIREMENTS.md) | AI 기능 목록, 처리 범위, 사전 생성·근거 조건 | 📝 |
 | | [AI_CLASSIFICATION](04_ai/AI_CLASSIFICATION.md) | 감성·이슈·모달리티·번역 프롬프트와 출력 형식 | 🔶 감성 분류 완료, 이슈 추출(3절) 초안 — 구현자 확인 전. 모달리티 태깅·번역 작성 전 |
@@ -125,9 +125,9 @@ PRODUCT_BRIEF ─┬─ PRODUCT_VISION ── (Core Question, 핵심 질문)
 | 기존 문서 | 옮긴 곳 | 상태 |
 |---|---|---|
 | `docs/dashboard_questions.md` | 1절 목적·Core Question → PRODUCT_VISION / 2절 사용자·Pain Point → PERSONA / 3절 핵심 질문 → PRODUCT_VISION, PRD / 4절 기능 ①~⑥ → PRD F1~F6 / 5절 시나리오 → PERSONA, USER_STORIES / 6절 점검표 → ACCEPTANCE_CRITERIA / 7절 한계 → PRD 5절, USER_RESEARCH | **이전 완료** — 모든 절이 01·02에 있음. 원본 삭제 여부는 팀 결정 |
-| `docs/company_selection.md` | 요약 → PRODUCT_BRIEF 3-2절 / 전체 → 03_data/DART_DATA_SPEC (작성 예정) | 일부 이전 |
+| `docs/company_selection.md` | 요약 → PRODUCT_BRIEF 3-2절 / 전체(1~7절) → 03_data/DART_DATA_SPEC 1절 | **이전 완료** (2026-11-18). 원본 링크 교체·삭제는 팀 결정 |
 | `docs/data_schema.md` | 전체 → 06_technical/DATABASE_SCHEMA (1~6절, 4절 수치는 2026-11-17 빌드로 재확인) / 1절 데이터 구성 → 03_data/DATA_PIPELINE | **이전 완료** (2026-11-18). 원본을 가리키는 링크(README, PRODUCT_BRIEF 등)는 아직 그대로 — 바꾼 뒤 원본 삭제 여부는 팀 결정 |
-| `docs/news_sort.md` | 03_data/NEWS_DATA_SPEC, 03_data/NEWS_CLASSIFICATION (작성 예정) | 미이전 |
+| `docs/news_sort.md` | 1절 키워드·검색어, 2절 출처·겹침, 5절 수집 관련 한계 → 03_data/NEWS_DATA_SPEC / 1절 키워드 정의, 3절 재분류 규칙, 4절 결과, 5절 분류 관련 한계 → 03_data/NEWS_CLASSIFICATION | **이전 완료** (2026-11-18). 원본 링크 교체·삭제는 팀 결정 |
 | `중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md` (루트) | 과제 요구사항 → PRODUCT_BRIEF, PRODUCT_VISION, PRD, ACCEPTANCE_CRITERIA, PRODUCT_ROADMAP | 과제 원문이므로 루트에 그대로 둔다 |
 | `README.md` (루트) | 실행 방법은 README에 유지. 문서 안내는 이 masterplan으로 연결 | 유지 |
 
