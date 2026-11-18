@@ -269,6 +269,17 @@ LangChain으로 `검색기 → 프롬프트 → LLM → 출력 파서` 를 잇�
 |---|---|---|---|---|
 | `corp_name` | `report_nm` (정정이면 "정정" 표시) | `rcept_date` | `quote` | `url` |
 
+**대시보드용 반환값 (2026-11-18, UI_SPECIFICATION 미결 Q3 대응).** `rag/qa.py` 의 `ask()` 는 기존 키를 그대로 두고 아래를 추가했다.
+
+| 키 | 내용 |
+|---|---|
+| `answer_display` | 답변의 `(접수번호)` 를 근거 번호 `[1]`, `[2]` 로 바꾼 화면용 문장. 같은 공시는 같은 번호. 인용 목록에 없는 접수번호가 섞인 괄호는 바꾸지 않는다 |
+| `citations[].n` | 위 번호. 같은 공시를 여러 번 인용하면 한 항목으로 합치고 구절은 `quotes` 에 모은다 (`quote` 는 첫 구절) |
+| `flags` | `judgment_declined`(투자 판단을 요구한 질문이라 판단하지 않음), `causality_unconfirmed`("인과는 공시로 확인되지 않는다"를 덧붙임). LLM 출력 스키마에 넣어 문구 검색 없이 판정한다 |
+| 오류 | 키·색인이 없거나 API 호출이 실패하면 프로그램을 끝내지(`sys.exit`) 않고 `QAError` 를 던진다. `code` 는 `no_api_key` / `no_index` / `api_error`. 근거가 없어 답하지 않는 경우는 지금처럼 `refused` 로 돌려준다 |
+
+범위 밖 안내 문구의 5개사 순서는 INFORMATION_ARCHITECTURE 4-1절 순서로 맞췄다 (Q10).
+
 ---
 
 ## 5. 질의응답 시나리오

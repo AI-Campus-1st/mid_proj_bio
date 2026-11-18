@@ -11,6 +11,9 @@
   python rag/qa.py "수주 계약은?" --corp 삼성바이오로직스 --from 2025-01-01 --to 2025-12-31
   python rag/qa.py "질문" --json          # 결과 전체를 JSON 으로 출력
 대시보드에서는 ask(question, corp_names=..., date_from=..., date_to=...) 를 불러 쓴다.
+  - 돌려주는 값은 ask() 의 설명을 본다. 화면에는 answer 대신 answer_display([n] 번호)를 쓰면 된다.
+  - 키·색인이 없거나 API 호출이 실패하면 QAError 를 던진다 (프로그램을 끝내지 않는다).
+    QAError.code 는 "no_api_key" / "no_index" / "api_error".
 API 키: 환경변수 OPENAI_API_KEY, 없으면 .env 의 OPENAI_API_KEY.
 """
 import argparse
@@ -43,9 +46,19 @@ N_FINAL = N_EVENT + N_GENERAL  # 답변 LLM 에 넘기는 청크 수 (최대)
 # 평가 질문의 점수 분포로 정할 값이다 (설계 문서 7절 D7). 0 이면 이 단계에서는 거절하지 않는다.
 MIN_SIMILARITY = 0.0
 
+class QAError(RuntimeError):
+    """질의응답을 할 수 없는 상태 (설정 문제·API 실패). 근거가 없어 답하지 않는 거절(refused)과는 다르다."""
+
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+
+
 REFUSAL_TEXT = (f"수집한 5개사 공시({DB_START} ~ {DB_END})에서 근거를 찾지 못해 답변하지 않습니다.")
-OUT_OF_SCOPE_TEXT = ("이 서비스는 5개사(삼성바이오로직스, SK바이오사이언스, 에스티팜, 프레스티지바이오로직스, "
+# 기업 순서는 INFORMATION_ARCHITECTURE 4-1절 (UI 명세 Q10)
+OUT_OF_SCOPE_TEXT = ("이 서비스는 5개사(삼성바이오로직스, SK바이오사이언스, 프레스티지바이오로직스, 에스티팜, "
                      "바이넥스)의 공시만 다룹니다. {names} 의 공시는 수집하지 않아 답변하지 않습니다.")
+NO_FLAGS = {"judgment_declined": False, "causality_unconfirmed": False}
 
 # 범위 밖 기업. 질문에 5개사 이름 없이 이 이름만 있으면 검색하지 않고 거절한다.
 # 목록에 없는 기업은 여기서 걸러지지 않고 뒤 단계(유사도·LLM·인용 검증)에서 거절된다.
@@ -67,8 +80,11 @@ OUTPUT_SCHEMA = {
             "additionalProperties": False,
         }},
         "refusal_reason": {"type": ["string", "null"]},
+        "judgment_declined": {"type": "boolean"},
+        "causality_unconfirmed": {"type": "boolean"},
     },
-    "required": ["refused", "answer", "citations", "refusal_reason"],
+    "required": ["refused", "answer", "citations", "refusal_reason", "judgment_declined",
+                 "causality_unconfirmed"],
     "additionalProperties": False,
 }
 
@@ -84,8 +100,10 @@ SYSTEM_PROMPT = """당신은 국내 바이오 CDMO 5개사의 DART 공시를 근
    이때 answer 는 빈 문자열, citations 는 빈 배열이다.
 5. 투자 판단·전망·추천을 묻는 질문에는 판단하지 않는다. 발췌에 관련 사실이 있으면 그 사실만 전하고
    "투자 판단은 하지 않는다"고 덧붙인다. 관련 사실이 없으면 4번대로 거절한다.
+   질문이 투자 판단·전망·추천을 요구했으면 judgment_declined 를 true 로 한다 (답하든 거절하든).
 6. 공시에 인과 관계가 적혀 있지 않으면(예: 정책 때문에 수주가 늘었다) 인과를 말하지 않고,
-   "인과는 공시로 확인되지 않는다"고 덧붙인다.
+   "인과는 공시로 확인되지 않는다"고 덧붙인다. 이렇게 덧붙였으면 causality_unconfirmed 를 true 로 한다.
+   그 밖의 경우 judgment_declined 와 causality_unconfirmed 는 false 이다.
 7. 같은 계약의 원공시와 정정 공시가 함께 있으면 접수일이 늦은 정정 공시의 내용을 기준으로 답한다.
 8. 답은 한국어로, 군더더기 없이 쓴다."""
 
@@ -114,8 +132,22 @@ def squash(text: str) -> str:
 
 
 def refuse(state: dict, stage: str, reason: str, text: str = REFUSAL_TEXT) -> dict:
-    return {**state, "refused": True, "stage": stage, "answer": text, "refusal_reason": reason,
-            "citations": []}
+    return {**state, "refused": True, "stage": stage, "answer": text, "answer_display": text,
+            "refusal_reason": reason, "citations": [], "flags": state.get("flags", dict(NO_FLAGS))}
+
+
+RCEPT_REF = re.compile(r"\(\s*(\d{14}(?:\s*[,，]\s*\d{14})*)\s*\)")
+
+
+def number_references(answer: str, numbers: dict) -> str:
+    """답변의 '(20260918900224)' · '(번호, 번호)' 를 근거 번호 '[1]' · '[1][2]' 로 바꾼다.
+    인용 목록에 없는 접수번호가 섞인 괄호는 그대로 둔다."""
+    def sub(m):
+        nos = re.findall(r"\d{14}", m.group(1))
+        if not all(n in numbers for n in nos):
+            return m.group(0)
+        return "".join(f"[{numbers[n]}]" for n in dict.fromkeys(nos))
+    return RCEPT_REF.sub(sub, answer)
 
 
 # ---------------------------------------------------------------- ① 범위 확인
@@ -170,7 +202,7 @@ def retrieve(state: dict) -> dict:
     try:
         col = client.get_collection(COLLECTION)
     except Exception:
-        sys.exit(f"색인이 없다: {CHROMA_DIR}. 먼저 python rag/build_index.py 를 실행한다.")
+        raise QAError("no_index", f"색인이 없다: {CHROMA_DIR}. 먼저 python rag/build_index.py 를 실행한다.")
     embed_model = (col.metadata or {}).get("embed_model")
     # 화면 필터의 기업과 질문에서 찾은 기업을 함께 건다. 둘 다 있으면 겹치는 기업만 본다.
     corp_names = state.get("corp_names") or []
@@ -251,6 +283,7 @@ def generate(state: dict) -> dict:
         out = json.loads(res.choices[0].message.content or "")
     except json.JSONDecodeError:
         return refuse(state, "generate", "LLM 응답이 JSON 이 아니다")
+    state["flags"] = {k: bool(out.get(k)) for k in NO_FLAGS}
     if out["refused"]:
         return refuse(state, "generate", out.get("refusal_reason") or "LLM 이 답할 수 없다고 판단")
     return {**state, "answer": out["answer"], "raw_citations": out["citations"]}
@@ -266,7 +299,7 @@ def verify(state: dict) -> dict:
     raw = state.pop("raw_citations")
     if not raw:
         return refuse(state, "verify", "인용이 없다")
-    citations = []
+    citations, numbers = [], {}
     for cit in raw:
         chunks = by_doc.get(cit["rcept_no"])
         if not chunks:
@@ -274,14 +307,20 @@ def verify(state: dict) -> dict:
         quote = squash(cit["quote"])
         if not quote or not any(quote in squash(c["text"]) for c in chunks):
             return refuse(state, "verify", f"인용 구절이 원문에 없다: {cit['quote'][:60]}")
+        # 같은 공시를 여러 번 인용하면 한 항목으로 합치고 구절만 모은다 (같은 공시 = 같은 번호)
+        if cit["rcept_no"] in numbers:
+            citations[numbers[cit["rcept_no"]] - 1]["quotes"].append(cit["quote"])
+            continue
         # 공시명·접수일·링크는 LLM 이 쓰지 않고 색인 메타데이터에서 채운다
         m = chunks[0]["metadata"]
         d = str(m["rcept_date"])
-        citations.append({"rcept_no": m["rcept_no"], "quote": cit["quote"], "corp_name": m["corp_name"],
+        numbers[m["rcept_no"]] = len(citations) + 1
+        citations.append({"n": numbers[m["rcept_no"]], "rcept_no": m["rcept_no"], "quote": cit["quote"],
+                          "quotes": [cit["quote"]], "corp_name": m["corp_name"],
                           "report_nm": m["report_nm"], "is_amended": m["is_amended"],
                           "rcept_date": f"{d[:4]}-{d[4:6]}-{d[6:]}", "url": m["url"]})
     return {**state, "refused": False, "stage": "answered", "refusal_reason": None,
-            "citations": citations}
+            "citations": citations, "answer_display": number_references(state["answer"], numbers)}
 
 
 CHAIN = (RunnableLambda(check_scope) | RunnableLambda(retrieve) | RunnableLambda(generate)
@@ -290,15 +329,29 @@ CHAIN = (RunnableLambda(check_scope) | RunnableLambda(retrieve) | RunnableLambda
 
 def ask(question: str, corp_names=None, date_from=None, date_to=None) -> dict:
     """질문에 답한다. 돌려주는 값의 주요 키:
-    refused(bool), stage(scope/search/generate/verify/answered), answer, refusal_reason,
-    citations[{corp_name, report_nm, is_amended, rcept_date, quote, url, rcept_no}],
-    retrieved(검색된 청크), top_similarity, usage
+    refused        bool. True 면 answer 에 거절 문구가 들어 있다
+    stage          scope(검색 전 거절) / search(검색 후 거절) / generate(LLM 이 거절) / verify(인용 검증 실패)
+                   / answered
+    answer         LLM 답변 원문. 문장 끝에 (접수번호) 가 붙어 있다
+    answer_display 화면용. (접수번호) 를 citations 의 번호 [1], [2] 로 바꾼 것 (같은 공시는 같은 번호)
+    refusal_reason 거절 이유 (답변이면 None)
+    citations      [{n, rcept_no, corp_name, report_nm, is_amended, rcept_date, url, quote, quotes}]
+                   n 은 answer_display 의 번호. quote 는 첫 인용 구절, quotes 는 같은 공시의 구절 전부
+    flags          {judgment_declined: 투자 판단을 요구한 질문이라 판단하지 않음,
+                    causality_unconfirmed: "인과는 공시로 확인되지 않는다"를 덧붙임}
+    retrieved, top_similarity, filter, usage  검색·사용량 정보
+    설정 문제나 API 실패는 거절이 아니라 QAError 로 알린다.
     """
+    import openai
+
     load_api_key()
     if not os.environ.get("OPENAI_API_KEY"):
-        sys.exit("OPENAI_API_KEY 가 없다. .env 에 키를 넣는다.")
-    return CHAIN.invoke({"question": question.strip(), "corp_names": corp_names,
-                         "date_from": date_from, "date_to": date_to})
+        raise QAError("no_api_key", "OPENAI_API_KEY 가 없다. .env 에 키를 넣는다.")
+    try:
+        return CHAIN.invoke({"question": question.strip(), "corp_names": corp_names,
+                             "date_from": date_from, "date_to": date_to})
+    except openai.OpenAIError as e:
+        raise QAError("api_error", f"OpenAI 호출 실패: {type(e).__name__}") from e
 
 
 def format_result(r: dict) -> str:
@@ -306,11 +359,13 @@ def format_result(r: dict) -> str:
     if r["refused"]:
         lines += [f"[거절 — {r['stage']} 단계] {r['answer']}", f"  이유: {r['refusal_reason']}"]
     else:
-        lines += ["답변: " + r["answer"], "", "근거 공시", "| 기업 | 공시명 | 제출일 | 근거 구절 | 링크 |",
-                  "|---|---|---|---|---|"]
+        lines += ["답변: " + r["answer_display"], "", "근거 공시",
+                  "| # | 기업 | 공시명 | 제출일 | 근거 구절 | 링크 |", "|---|---|---|---|---|---|"]
         for c in r["citations"]:
-            lines.append(f"| {c['corp_name']} | {c['report_nm']} | {c['rcept_date']} | {c['quote']} | "
-                         f"{c['url']} |")
+            lines.append(f"| [{c['n']}] | {c['corp_name']} | {c['report_nm']} | {c['rcept_date']} | "
+                         f"{' / '.join(c['quotes'])} | {c['url']} |")
+    if any(r.get("flags", {}).values()):
+        lines.append(f"표시: {r['flags']}")
     if r.get("top_similarity") is not None:
         found = ", ".join(f"{c['metadata']['rcept_no']}({c['similarity']})" for c in r["retrieved"])
         lines.append(f"\n검색: 최상위 유사도 {r['top_similarity']}, 넘긴 청크 {found}")
@@ -327,7 +382,10 @@ def main() -> None:
     ap.add_argument("--to", dest="date_to", help="접수일 끝 YYYY-MM-DD")
     ap.add_argument("--json", action="store_true", help="결과 전체를 JSON 으로 출력")
     args = ap.parse_args()
-    r = ask(args.question, args.corp, args.date_from, args.date_to)
+    try:
+        r = ask(args.question, args.corp, args.date_from, args.date_to)
+    except QAError as e:
+        sys.exit(f"[{e.code}] {e}")
     print(json.dumps(r, ensure_ascii=False, indent=2) if args.json else format_result(r))
 
 
