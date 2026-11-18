@@ -1,10 +1,12 @@
 # 기술 스택
 
 > **상태:** 작성 완료 — 영역별 도구와 실제 사용 여부, 선택 이유와 대안, LLM·임베딩 모델, Python 버전·설치 · **최종 갱신:** 2026-11-18
-> **원본:** `README.md` 기술 스택·준비, `requirements.txt`, 각 스크립트의 import·설정 상수 (과제 가이드의 "핵심 기술" 원문은 저장소에 없어 확인하지 못함)
+> **원본:** `README.md` 기술 스택·준비, `requirements.txt`, 각 스크립트의 import·설정 상수 과제 가이드(`docs/중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md`) 머리말 "핵심 기술"
 > **관련 문서:** [masterplan](../masterplan.md) · [SYSTEM_ARCHITECTURE](SYSTEM_ARCHITECTURE.md) · [API_SPECIFICATION](API_SPECIFICATION.md) · [DATA_PIPELINE](../03_data/DATA_PIPELINE.md) · [UI_SPECIFICATION](../05_design/UI_SPECIFICATION.md)
 
 ---
+
+과제 가이드가 정한 핵심 기술은 **Python(Pandas·NumPy) · 정규표현식 · DART OpenAPI · LLM API · LangChain · VectorDB · Plotly · Streamlit** 이다. 아래 2절의 도구가 이를 모두 쓴다 (정규표현식: 텍스트 정제·CDMO 분류·계약 금액 추출, VectorDB: Chroma).
 
 ## 1. 실행 환경
 

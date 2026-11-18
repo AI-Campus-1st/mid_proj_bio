@@ -1,7 +1,7 @@
 # 시스템 구조
 
 > **상태:** 작성 완료 — 계층과 구성 요소별 책임·디렉터리, 저장소, 대시보드 내부 구조, 실시간 호출을 하지 않는 구조, 실행 환경·비밀 정보 · **최종 갱신:** 2026-11-18
-> **원본:** `README.md` 디렉터리·실행 순서, `docs/data_schema.md` 1절, 코드 (`collect/`, `analysis/`, `db/`, `rag/`, `dashboard/`). 과제 가이드 5·6절 원문은 저장소에 없어 확인하지 못함 — 이 문서의 "과제 요구"는 PRD N1·N2와 제출 전 점검표 기준
+> **원본:** `README.md` 디렉터리·실행 순서, `docs/data_schema.md` 1절, 코드 (`collect/`, `analysis/`, `db/`, `rag/`, `dashboard/`). 과제 가이드(`docs/중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md`) 5·6·7절
 > **관련 문서:** [masterplan](../masterplan.md) · [DATA_PIPELINE](../03_data/DATA_PIPELINE.md) (단계별 입출력·실행 순서) · [DATABASE_SCHEMA](DATABASE_SCHEMA.md) · [API_SPECIFICATION](API_SPECIFICATION.md) · [TECH_STACK](TECH_STACK.md)
 
 ---
@@ -75,7 +75,7 @@ LLM 결과를 DB 테이블이 아니라 파일에 두는 이유와 키 연결은
 
 ## 5. 대시보드가 실시간으로 API·LLM을 부르지 않는 구조
 
-과제 제출 전 점검 "대시보드가 API를 직접 호출하지 않고 저장된 결과를 조회한다"와 PRD N1·N2를 지키는 방법이다.
+과제 가이드 6절 "수집·분석·대시보드를 분리한다. 대시보드에서 API를 직접 호출하거나 LLM 분류를 실시간으로 수행하지 않는다 / LLM 분석 결과와 임베딩은 사전에 생성하여 저장하고, 대시보드는 저장된 결과를 조회한다"와 PRD N1·N2를 지키는 방법이다. 가이드 5절의 계층 분리(수집·분석·대시보드)도 이 구조를 따른다.
 
 | 화면 결과 | 만드는 곳 (미리) | 대시보드가 하는 일 |
 |---|---|---|
@@ -92,7 +92,7 @@ Q&A 예외의 안전장치: 답변은 검색된 공시 발췌로만 만들고, �
 
 | 항목 | 현재 | 비고 |
 |---|---|---|
-| 실행 위치 | **로컬** (`streamlit run dashboard/app.py`, 저장소 루트에서) | 배포하지 않았다 |
+| 실행 위치 | **로컬** (`streamlit run dashboard/app.py`, 저장소 루트에서) | 배포하지 않았다. 가이드 7절은 "로컬 실행 가능 상태 또는 배포 URL" 중 하나를 요구한다 |
 | 필요한 것 | Python 3.12 가상환경, `data/db/bio_cdmo.sqlite`, (Q&A) `chroma_db/`·`OPENAI_API_KEY` | DB·색인은 git에 없어 각자 만들거나 받는다 |
 | 배포 시 고려 | DB(약 107MB)와 `chroma_db/`(약 692MB)를 배포 환경에 올리거나 시작할 때 만들어야 한다. 키는 Streamlit `secrets.toml`(git 제외 등록됨)로 넣는다 | 미검토 — 발표는 로컬 실행 전제 |
 | 성능 | 화면마다 첫 로딩 약 0.5~1초 (2026-11-18 측정, 캐시 전) | [TEST_PLAN](../07_project-management/TEST_PLAN.md) |

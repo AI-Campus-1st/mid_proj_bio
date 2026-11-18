@@ -15,7 +15,7 @@
 | 대상 기업 | 삼성바이오로직스, SK바이오사이언스, 프레스티지바이오로직스, 에스티팜, 바이넥스 |
 | 데이터 | 2023-10-19 ~ 2026-10-19 · 뉴스 9,216건 · 공시 867건 |
 | 최종 산출물 | Streamlit 대시보드(이슈 분석 + 공시 Q&A), PDF 리포트, PPT 발표 |
-| 과제 원문 | `중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md` (저장소 루트) |
+| 과제 원문 | `docs/중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md` (파일 이름이 NFD 유니코드로 저장돼 있어, 일부 도구에서 이름 검색이 안 될 수 있다) |
 
 자세한 내용은 [PRODUCT_BRIEF](01_product-strategy/PRODUCT_BRIEF.md).
 
@@ -72,21 +72,21 @@ docs/
 | | [NEWS_CLASSIFICATION](03_data/NEWS_CLASSIFICATION.md) | 카테고리·CDMO 키워드 6개, 규칙 기반 분류, 중복 판정 | ✅ (2026-11-18) |
 | | [DATA_PIPELINE](03_data/DATA_PIPELINE.md) | 수집 → 재분류 → 적재 → AI → 대시보드 흐름, 재실행 | ✅ (2026-11-18) |
 | | [CONTRACT_AMOUNTS](03_data/CONTRACT_AMOUNTS.md) | 수주 공시 계약 금액 추출 규칙, 정정 공시 연결, 검증 결과 | ✅ (2026-11-18) — 금액 94/94건 매출 비율 대조 일치 |
-| **04 ai** | [AI_REQUIREMENTS](04_ai/AI_REQUIREMENTS.md) | AI 기능 목록, 처리 범위, 사전 생성·근거 조건 | 📝 |
+| **04 ai** | [AI_REQUIREMENTS](04_ai/AI_REQUIREMENTS.md) | AI 기능 목록, 처리 범위, 사전 생성·근거 조건 | ✅ (2026-11-18) |
 | | [AI_CLASSIFICATION](04_ai/AI_CLASSIFICATION.md) | 감성·이슈·모달리티·번역 프롬프트와 출력 형식 | 🔶 감성 분류 완료, 이슈 추출(3절) 초안 — 구현자 확인 전. 4절 모달리티 태깅·5절 번역 실행 완료(번역 품질 검수 전, 2026-11-18) |
 | | [NEWS_DISCLOSURE_MATCHING](04_ai/NEWS_DISCLOSURE_MATCHING.md) | 뉴스-공시 매칭 규칙, 공시 RAG 구성 | 🔶 설계 확정(팀 합의 2026-11-17). RAG는 구현·평가 완료, 매칭은 실제 DB 실행(직접 창 ±3일)·표본 50쌍 검수 완료(2026-11-18) |
 | | [AI_EVALUATION](04_ai/AI_EVALUATION.md) | 표본 검수 방법과 정확도 기록 (과제 필수) | 🔶 감성 분류(4절)·공시 RAG(6절)·뉴스-공시 매칭(7절) 기록. 규칙 분류·이슈 추출 평가는 작성 전 |
 | **05 design** | [INFORMATION_ARCHITECTURE](05_design/INFORMATION_ARCHITECTURE.md) | 화면 목록·계층·필터 위치·이동 경로 | 🔶 초안(2026-11-17) — 결정 필요 U1~U5 팀 확인 전 |
-| | [USER_FLOW](05_design/USER_FLOW.md) | 시나리오별 화면 이동 흐름 | 📝 |
+| | [USER_FLOW](05_design/USER_FLOW.md) | 시나리오별 화면 이동 흐름 | ✅ (2026-11-18) — 구현 기준. Kevin 님 확인 전 |
 | | [WIREFRAME](05_design/WIREFRAME.md) | 화면별 배치 | 🔶 초안(2026-11-17) — S0~S6 배치·상태 표시 |
 | | [UI_SPECIFICATION](05_design/UI_SPECIFICATION.md) | 컴포넌트 동작·표시 규칙 | 🔶 초안(2026-11-17) — 디자인 토큰·테마, 공통 컴포넌트, 필터, S0~S6 컴포넌트, 표시 규칙·문구, AC 추적. U1~U5·미결 Q1~Q18 팀 확인 전 |
-| **06 technical** | [SYSTEM_ARCHITECTURE](06_technical/SYSTEM_ARCHITECTURE.md) | 계층 구조, 구성 요소, 실행 환경 | ✅ (2026-11-18) — 과제 가이드 5·6절 원문 대조는 미확인 |
+| **06 technical** | [SYSTEM_ARCHITECTURE](06_technical/SYSTEM_ARCHITECTURE.md) | 계층 구조, 구성 요소, 실행 환경 | ✅ (2026-11-18) |
 | | [API_SPECIFICATION](06_technical/API_SPECIFICATION.md) | 외부 API, 내부 조회 인터페이스, RAG 입출력 | ✅ (2026-11-18) |
 | | [DATABASE_SCHEMA](06_technical/DATABASE_SCHEMA.md) | 통합 DB 스키마 공식 문서 | ✅ (2026-11-18) — DB 밖 산출물 연결·재빌드 시 보존 포함 |
 | | [TECH_STACK](06_technical/TECH_STACK.md) | 도구·버전·선택 이유 | ✅ (2026-11-18) — 설치만 되고 쓰지 않는 패키지 목록 포함 |
-| **07 project-management** | [MILESTONES](07_project-management/MILESTONES.md) | 단계별 완료 조건과 실제 완료일, 릴리스 기록 | 📝 |
-| | [TASKS](07_project-management/TASKS.md) | 작업·담당자·상태 | 📝 |
-| | [DECISIONS](07_project-management/DECISIONS.md) | 주요 결정과 이유 (ADR) | 📝 |
+| **07 project-management** | [MILESTONES](07_project-management/MILESTONES.md) | 단계별 완료 조건과 실제 완료일, 릴리스 기록 | ✅ (2026-11-18) |
+| | [TASKS](07_project-management/TASKS.md) | 작업·담당자·상태 | ✅ (2026-11-18) — 기록 기준 실제 분담, 남은 작업 담당 미정 |
+| | [DECISIONS](07_project-management/DECISIONS.md) | 주요 결정과 이유 (ADR) | ✅ (2026-11-18) — 36건 |
 | | [TEST_PLAN](07_project-management/TEST_PLAN.md) | 검수 방법과 결과 기록 | 🔶 대시보드 통합 점검·제출 전 점검 기록(2026-11-18). 데이터 검증 SQL 작성 전 |
 
 ### 3-3. 문서 간 연결
@@ -129,7 +129,7 @@ PRODUCT_BRIEF ─┬─ PRODUCT_VISION ── (Core Question, 핵심 질문)
 | `docs/company_selection.md` | 요약 → PRODUCT_BRIEF 3-2절 / 전체(1~7절) → 03_data/DART_DATA_SPEC 1절 | **이전 완료** (2026-11-18). 원본 링크 교체·삭제는 팀 결정 |
 | `docs/data_schema.md` | 전체 → 06_technical/DATABASE_SCHEMA (1~6절, 4절 수치는 2026-11-17 빌드로 재확인) / 1절 데이터 구성 → 03_data/DATA_PIPELINE | **이전 완료** (2026-11-18). 원본을 가리키는 링크(README, PRODUCT_BRIEF 등)는 아직 그대로 — 바꾼 뒤 원본 삭제 여부는 팀 결정 |
 | `docs/news_sort.md` | 1절 키워드·검색어, 2절 출처·겹침, 5절 수집 관련 한계 → 03_data/NEWS_DATA_SPEC / 1절 키워드 정의, 3절 재분류 규칙, 4절 결과, 5절 분류 관련 한계 → 03_data/NEWS_CLASSIFICATION | **이전 완료** (2026-11-18). 원본 링크 교체·삭제는 팀 결정 |
-| `중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md` (루트) | 과제 요구사항 → PRODUCT_BRIEF, PRODUCT_VISION, PRD, ACCEPTANCE_CRITERIA, PRODUCT_ROADMAP | 과제 원문이므로 루트에 그대로 둔다 |
+| `docs/중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md` | 과제 요구사항 → PRODUCT_BRIEF, PRODUCT_VISION, PRD, ACCEPTANCE_CRITERIA, PRODUCT_ROADMAP | 과제 원문이므로 루트에 그대로 둔다 |
 | `README.md` (루트) | 실행 방법은 README에 유지. 문서 안내는 이 masterplan으로 연결 | 유지 |
 
 ---
