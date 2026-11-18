@@ -256,6 +256,14 @@ def render():
     else:
         _heatmap(matrix, view == "기업 내 비율", key=f"s3_heat_{fkey}_{view}")
         st.caption("기업 내 비율: 그 기업 행의 합계 대비 비율. 삼성바이오로직스 기사가 많아 기사 수만 보면 다른 기업의 차이가 묻힙니다.")
+        # 표로 보기 (UI 명세 3-2·8절 — 모든 차트 아래): 차트와 같은 값을 보여 준다
+        if view == "기업 내 비율":
+            shown = (matrix.div(matrix.sum(axis=1).replace(0, 1), axis=0) * 100).round(1)
+            label = "기업 × 모달리티 기업 내 비율(%) — 그 기업 행 합계 대비"
+        else:
+            shown = matrix.assign(합계=matrix.sum(axis=1))
+            label = "기업 × 모달리티 기사 수 (한 기사에 태그가 여러 개면 각 모달리티에 셈)"
+        ui.table_view(shown.rename_axis("기업").reset_index(), label)
         _evidence(tagged, matrix)
 
     st.markdown("#### 증설 공시")

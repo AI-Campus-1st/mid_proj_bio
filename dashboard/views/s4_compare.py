@@ -104,6 +104,11 @@ def _timeline(disc: pd.DataFrame, companies: list, fkey: int) -> None:
     theme.show(fig, key=key, alt=f"{corp} 공시 타임라인 (속 빈 원은 정정 공시)",
                on_select=lambda: _pick_point(key), selection_mode="points")
     st.caption("점을 누르면 아래에 공시가 보입니다. 속 빈 원은 정정 공시입니다.")
+    # 표로 보기 (UI 명세 3-2·8절 — 모든 차트 아래): 타임라인에 찍은 공시 그대로
+    tl = d.sort_values("date", ascending=False)
+    ui.table_view(pd.DataFrame({"제출일": tl.rcept_date, "분류": tl.event_class, "공시명": tl.report_nm,
+                                "정정": tl.is_amended.map({1: "정정", 0: ""}), "접수번호": tl.rcept_no}),
+                  f"{corp} 공시 {len(tl):,}건 (정정 포함, 제출일 최신순)")
 
     sel = d[d.rcept_no == st.session_state.get("s4_rcept")]
     if sel.empty:
