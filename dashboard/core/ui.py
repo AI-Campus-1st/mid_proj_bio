@@ -28,10 +28,14 @@ def header(title: str, question: str, filters: dict, screen_scope: str | None = 
 
 
 def kpis(items: list) -> None:
-    """items: [{"label", "value", "help"}] 2~4개. 값은 형식화된 문자열 (없으면 "—")."""
+    """items: [{"label", "value", "help", "delta"?, "delta_color"?}] 2~4개. 값은 형식화된 문자열 (없으면 "—").
+
+    delta 는 증감 배지 문자열(예: "+12% 최근 3개월"). delta_color 는 normal(증가=좋음) / inverse(증가=나쁨) / off.
+    """
     cols = st.columns(len(items), gap="small")
     for col, it in zip(cols, items):
-        col.metric(it["label"], it.get("value") or "—", help=it.get("help"), border=True)
+        col.metric(it["label"], it.get("value") or "—", help=it.get("help"), border=True,
+                   delta=it.get("delta"), delta_color=it.get("delta_color", "normal"))
 
 
 def conclusion(text: str, evidence: list) -> None:
