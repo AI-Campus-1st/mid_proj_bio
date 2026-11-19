@@ -60,6 +60,9 @@ button[data-testid^="stBaseButton-primary"] {{ font-weight: 600; }}
 .st-key-s0_examples button p {{ width: 100%; text-align: left; justify-content: flex-start; }}
 .st-key-s0_examples button p {{ font-size: 0.875rem; line-height: 1.35; word-break: keep-all; }}
 .st-key-s0_examples button strong {{ display: block; }}   /* 기업명 한 줄, 묻는 것 한 줄 */
+/* 폼 제출 버튼("질문" 등): 좁아져도 글자가 줄바꿈·잘림 없이 보이게 */
+[data-testid="stFormSubmitButton"] {{ flex-shrink: 0; }}
+[data-testid="stFormSubmitButton"] button {{ white-space: nowrap; }}
 /* 띠 안 수치 상자: 반투명 테두리 */
 .st-key-s0_hero_stats {{ border-color: rgba(255,255,255,0.28) !important; background: rgba(255,255,255,0.05); }}
 </style>""")

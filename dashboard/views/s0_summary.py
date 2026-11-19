@@ -150,10 +150,12 @@ def _header(filters: dict) -> None:
         st.caption(f"현재 필터: {flt.status_line(filters)}")
     with right:
         with st.form("s0_qa_form", border=False):
-            c1, c2 = st.columns([4, 1.2], gap="small", vertical_alignment="bottom")
-            c1.text_input("공시에 물어보기", key="s0_question", placeholder="공시에 물어보기…",
-                          label_visibility="collapsed")
-            go_ = c2.form_submit_button("질문", type="primary", width="stretch", on_click=_ask_from_box)
+            # 열 비율로 나누면 좁은 창에서 버튼 칸이 20px 까지 줄어 "질문"이 잘린다 →
+            # 가로 컨테이너에 두고 버튼은 글자 폭(content)만큼 확보, 입력칸이 남은 폭을 쓴다
+            with st.container(horizontal=True, gap="small", vertical_alignment="bottom"):
+                st.text_input("공시에 물어보기", key="s0_question", placeholder="공시에 물어보기…",
+                              label_visibility="collapsed", width="stretch")
+                go_ = st.form_submit_button("질문", type="primary", width="content", on_click=_ask_from_box)
         if go_ and st.session_state.get("qa_pending"):
             st.switch_page(_page("qa"))
 
