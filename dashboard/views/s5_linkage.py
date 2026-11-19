@@ -101,7 +101,7 @@ def _volume_vs_disclosures(filters: dict, fkey: int) -> None:
     sel = disc[disc.rcept_no == st.session_state.get("s5_rcept")]
     if not sel.empty:
         row = sel.iloc[0].to_dict()
-        with st.container(border=True):
+        with ui.card():
             ui.disclosure_line(row)
             if st.button("이 공시에 질문 →", key="s5_ask_chart", on_click=_go_qa,
                          args=(row["corp_name"], row["rcept_date"])):

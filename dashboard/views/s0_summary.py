@@ -155,10 +155,11 @@ def _hero(summary: dict) -> None:
     total = sum(counts.values())
     ratio = round(opp / risk) if risk else None
     lean = "기회 우위" if risk and opp >= 2 * risk else "위험 우위" if opp and risk >= 2 * opp else "기회·위험 혼재"
-    st.subheader(f"지금 CDMO 시장은 \"{lean}\"")
-    parts = [f"기회 기사가 위험의 {ratio}배" if ratio else None, f"기사 {total:,}건 분석",
-             f":gray-badge[{summary['basis']}]"]
-    st.markdown(" · ".join(p for p in parts if p))
+    with st.container(key="s0_hero"):   # 결론 띠 — 진녹색 면 (core/style.py, DESIGN.md Feature Band)
+        st.subheader(f"지금 CDMO 시장은 \"{lean}\"")
+        parts = [f"기회 기사가 위험의 {ratio}배" if ratio else None, f"기사 {total:,}건 분석"]
+        st.markdown(" · ".join(p for p in parts if p))
+        st.caption(summary["basis"])
     with st.expander("결론 전문"):
         st.markdown(summary["conclusion"])
         st.caption("근거: 아래 기회·위험 요인의 기사·공시 링크 · 감성 라벨 전체 기사 기준")
@@ -168,7 +169,7 @@ def _tile(card: dict) -> None:
     t = card["tags"]
     news = [e for e in card["evidence"] if e["kind"] == "기사"]
     discs = [e for e in card["evidence"] if e["kind"] == "공시"]
-    with st.container(border=True):
+    with ui.card():
         st.markdown(f"**{card['title']}**")
         st.caption(f"기사 {card['n_articles']:,}건 · {', '.join(t['companies']) or '산업 전체'} · "
                    f"{t['start'][:7]} ~ {t['end'][:7]}")
@@ -200,7 +201,7 @@ def _tiles(cards: list, kind: str) -> None:
 
 def _trend_chart(sent: pd.DataFrame, filters: dict) -> None:
     mode = theme.current_mode()
-    with st.container(border=True):
+    with ui.card():
         st.markdown("#### 월별 기회 vs 위험")
         if sent.empty:
             st.caption("현재 필터에 해당하는 기사가 없습니다")
@@ -226,7 +227,7 @@ def _trend_chart(sent: pd.DataFrame, filters: dict) -> None:
 
 
 def _qa_card() -> None:
-    with st.container(border=True):
+    with ui.card():
         st.markdown("#### 공시에 물어보기")
         st.caption("5개사 공시 원문에서 근거를 찾아 답합니다. 근거가 없으면 답하지 않습니다.")
         for i, q in enumerate(EXAMPLES):
@@ -299,7 +300,7 @@ def render():
     with right:
         _qa_card()
     if not cards:
-        with st.container(border=True):
+        with ui.card():
             st.markdown("현재 필터에 해당하는 요약 없음")
             st.button("필터 초기화", key="empty_reset_S0_cards", on_click=flt.reset)
     else:

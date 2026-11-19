@@ -114,7 +114,7 @@ def _timeline(disc: pd.DataFrame, companies: list, fkey: int) -> None:
     if sel.empty:
         return
     row = sel.iloc[0].to_dict()
-    with st.container(border=True):
+    with ui.card():
         ui.disclosure_line(row)
         if st.button("이 공시에 질문 →", key="s4_ask", on_click=_go_qa, args=(row,)):
             st.switch_page(_qa_page())

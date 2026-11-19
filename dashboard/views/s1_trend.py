@@ -189,7 +189,7 @@ def _spike_detail(spikes: pd.DataFrame) -> None:
         return
     row = hit.iloc[0]
     articles, disclosures = data.spike_evidence(row)
-    with st.container(border=True):
+    with ui.card():
         st.markdown(f"**{row.peak_week} 주 · {row.scope}** — {row.peak_count:,}건 (평소 {row.baseline:.1f}, z {row.z:.1f})")
         if row.event:
             st.caption(EVENT_NOTE)
@@ -293,7 +293,7 @@ def _emerging_section(news: pd.DataFrame, filters: dict) -> None:
         st.caption("행을 고르면 대표 기사와 관련 공시로 갈 수 있습니다")
     elif show or st.session_state.get("_s1_issue_open") == sel:
         st.session_state["_s1_issue_open"] = sel
-        with st.container(border=True):
+        with ui.card():
             st.markdown(f"**{sel}** — 최근 3개월 {len(recent):,}건 (최근순 10건)")
             for r in recent.sort_values("date", ascending=False).head(10).to_dict("records"):
                 ui.news_line(r)

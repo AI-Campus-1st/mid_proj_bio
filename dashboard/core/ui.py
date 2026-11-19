@@ -18,6 +18,21 @@ LIMITS_COMMON = [
     "기사량은 중복 기사(정규화한 제목이 같고 7일 이내)를 빼고 셉니다.",
 ]
 
+CARD_COUNTER = "_ui_card_n"
+
+
+def reset_cards() -> None:
+    """app.py 가 매 실행 맨 앞에 부른다. 카드 key 가 실행마다 같은 순서로 매겨지게."""
+    st.session_state[CARD_COUNTER] = 0
+
+
+def card():
+    """테두리 카드 (st.container(border=True) 대신). key "card_N" 으로 core/style.py 의 카드 CSS(흰 면·12px·그림자)를 받는다."""
+    n = st.session_state.get(CARD_COUNTER, 0)
+    st.session_state[CARD_COUNTER] = n + 1
+    return st.container(border=True, key=f"card_{n}")
+
+
 SENTIMENT_BADGE = {"기회": ":blue-badge[▲ 기회]", "위험": ":red-badge[▼ 위험]", "중립": ":gray-badge[● 중립]"}
 
 
@@ -42,7 +57,7 @@ def conclusion(text: str, evidence: list) -> None:
     """S0 전용. 근거 링크가 없으면 문장을 표시하지 않는다 (N6)."""
     if not evidence:
         return
-    with st.container(border=True):
+    with card():
         st.markdown(text)
         st.caption("근거: " + " · ".join(f"[{e['label']}]({e['url']})" for e in evidence))
 
@@ -53,7 +68,7 @@ def pending(element: str, waiting_for: str) -> None:
 
 
 def empty(kind: str, key: str) -> None:
-    with st.container(border=True):
+    with card():
         st.markdown(f"현재 필터에 해당하는 {kind}가 없습니다")
         st.button("필터 초기화", key=f"empty_reset_{key}", on_click=flt.reset)
 
@@ -63,7 +78,7 @@ def no_selection(filters: dict, key: str) -> bool:
     if filters["companies"] and filters["keywords"]:
         return False
     missing = "기업" if not filters["companies"] else "카테고리"
-    with st.container(border=True):
+    with card():
         st.markdown(f"사이드바에서 {missing}을(를) 1개 이상 고르세요. 지금은 해당하는 기사·공시가 없습니다.")
         st.button("필터 초기화", key=f"empty_reset_{key}", on_click=flt.reset)
     return True

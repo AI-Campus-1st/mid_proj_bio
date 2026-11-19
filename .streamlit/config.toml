@@ -1,55 +1,61 @@
-# 대시보드 테마 — docs/05_design/UI_SPECIFICATION.md 2-6절 그대로.
+# 대시보드 테마 — 루트 DESIGN.md(따뜻한 크림 캔버스 · 초록 4단계 · 알약 버튼 · 12px 카드)를 따름 (starbucks-design 브랜치).
+# 차트 데이터 색(chartCategoricalColors·chartSequentialColors)은 UI_SPECIFICATION 2-6절 값 그대로 둔다 (색각 대비 검증값).
+# 테마로 안 되는 부분(카드 그림자·버튼 눌림·제목 색·S0 결론 띠)은 dashboard/core/style.py 의 CSS.
 # 저장소 루트에서 `streamlit run dashboard/app.py` 로 실행할 때 읽힌다.
 [theme]
-font = "Noto Sans KR:https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap, sans-serif"
+font = "Noto Sans KR:https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap, sans-serif"
 baseFontSize = 16
 headingFontSizes = ["2rem", "1.5rem", "1.25rem", "1.125rem", "1rem", "0.875rem"]
-headingFontWeights = [700, 700, 600, 600, 600, 600]
+headingFontWeights = [600, 600, 600, 600, 600, 600]   # DESIGN.md 3절: 위계는 크기보다 굵기·색으로
 metricValueFontSize = "1.75rem"
-baseRadius = "0.5rem"
-buttonRadius = "0.5rem"
+baseRadius = "0.75rem"        # 카드 12px
+buttonRadius = "full"         # 모든 버튼 알약 모양 (DESIGN.md 4절)
 showWidgetBorder = true
-showSidebarBorder = true
-linkUnderline = true
+showSidebarBorder = false
+linkUnderline = false
 
 [theme.light]
-primaryColor = "#1F4E79"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F4F6F9"
-textColor = "#1A1F29"
-borderColor = "#D5DAE1"
-linkColor = "#1F4E79"
-dataframeHeaderBackgroundColor = "#F4F6F9"
+primaryColor = "#00754A"                  # Green Accent — 버튼·선택
+backgroundColor = "#F2F0EB"               # Neutral Warm — 페이지 캔버스
+secondaryBackgroundColor = "#FFFFFF"      # 입력칸·카드 면
+textColor = "#1E1E1E"                     # Text Black (검정 87%)
+borderColor = "#D6DBDE"
+linkColor = "#00754A"
+dataframeHeaderBackgroundColor = "#EDEBE9" # Ceramic
+greenBackgroundColor = "#D4E9E2"          # Green Light
+greenTextColor = "#006241"                # Starbucks Green
 blueBackgroundColor = "#E8F1FC"
 blueTextColor = "#1D5FB3"
 redBackgroundColor = "#FCEBEB"
 redTextColor = "#A92A2A"
-grayBackgroundColor = "#EEF0F3"
-grayTextColor = "#4B5361"
+grayBackgroundColor = "#EDEBE9"
+grayTextColor = "#4A4A48"
 chartCategoricalColors = ["#716DF6", "#A20519", "#11598F", "#B0698C", "#C68206"]
 chartSequentialColors = ["#CDE2FB", "#9EC5F4", "#86B6EF", "#6DA7EC", "#5598E7", "#3987E5", "#2A78D6", "#256ABF", "#184F95", "#0D366B"]
 
 [theme.light.sidebar]
-backgroundColor = "#F4F6F9"
+backgroundColor = "#EDEBE9"               # Ceramic
 secondaryBackgroundColor = "#FFFFFF"
 
 [theme.dark]
-primaryColor = "#2F6FB0"
-backgroundColor = "#0E1117"
-secondaryBackgroundColor = "#1A1F2B"
-textColor = "#E6E9EF"
-borderColor = "#2F3644"
-linkColor = "#8CB8E6"
-dataframeHeaderBackgroundColor = "#1A1F2B"
-blueBackgroundColor = "#172A44"
-blueTextColor = "#9CC4F5"
-redBackgroundColor = "#3B1C1F"
+primaryColor = "#00754A"
+backgroundColor = "#1E3932"               # House Green
+secondaryBackgroundColor = "#2B5148"      # Green Uplift — 입력칸·카드 면
+textColor = "#F2F0EB"
+borderColor = "#3E6359"
+linkColor = "#D4E9E2"
+dataframeHeaderBackgroundColor = "#2B5148"
+greenBackgroundColor = "#24463E"
+greenTextColor = "#D4E9E2"
+blueBackgroundColor = "#1D3A4A"
+blueTextColor = "#A9CDF5"
+redBackgroundColor = "#4A2A27"
 redTextColor = "#F2A0A0"
-grayBackgroundColor = "#262C37"
-grayTextColor = "#C3C9D3"
+grayBackgroundColor = "#2B5148"
+grayTextColor = "#D0DAD6"
 chartCategoricalColors = ["#737AFC", "#BA2B2E", "#0A67A9", "#EA589A", "#D79628"]
 chartSequentialColors = ["#0D366B", "#184F95", "#256ABF", "#2A78D6", "#3987E5", "#5598E7", "#6DA7EC", "#86B6EF", "#9EC5F4", "#CDE2FB"]
 
 [theme.dark.sidebar]
-backgroundColor = "#1A1F2B"
-secondaryBackgroundColor = "#0E1117"
+backgroundColor = "#17302A"
+secondaryBackgroundColor = "#1E3932"

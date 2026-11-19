@@ -222,7 +222,7 @@ def _render_result(entry: dict) -> None:
             _render_no_disclosure(entry)
         return
 
-    with st.container(border=True):
+    with ui.card():
         st.markdown(r.get("answer_display") or r["answer"])
         st.markdown(":gray-badge[AI 생성]")
         if flags.get("causality_unconfirmed"):

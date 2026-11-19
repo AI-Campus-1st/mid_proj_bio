@@ -4,13 +4,16 @@
 """
 import streamlit as st
 
+# 화면 색 (DESIGN.md — 크림 캔버스 · 초록 4단계). 데이터 색(기업·감성·범주 슬롯)은 아래 그대로 (UI_SPECIFICATION 2-1절).
 TOKENS = {
-    "light": {"bg": "#FFFFFF", "bg-subtle": "#F4F6F9", "text": "#1A1F29", "text-muted": "#5A6270",
-              "border": "#D5DAE1", "grid": "#E6E9EE", "primary": "#1F4E79", "link": "#1F4E79",
-              "series-volume": "#1F4E79"},
-    "dark": {"bg": "#0E1117", "bg-subtle": "#1A1F2B", "text": "#E6E9EF", "text-muted": "#A2AAB8",
-             "border": "#2F3644", "grid": "#252B36", "primary": "#2F6FB0", "link": "#8CB8E6",
-             "series-volume": "#6FA8DC"},
+    "light": {"bg": "#F2F0EB", "bg-subtle": "#FFFFFF", "text": "#1E1E1E", "text-muted": "#5C5A55",
+              "border": "#D6DBDE", "grid": "#E3E0D8", "primary": "#00754A", "link": "#00754A",
+              "series-volume": "#1F4E79",
+              "heading": "#006241", "band": "#1E3932", "band-text": "#FFFFFF", "band-muted": "#D4E9E2"},
+    "dark": {"bg": "#1E3932", "bg-subtle": "#2B5148", "text": "#F2F0EB", "text-muted": "#B9C8C2",
+             "border": "#3E6359", "grid": "#2F5047", "primary": "#00754A", "link": "#D4E9E2",
+             "series-volume": "#6FA8DC",
+             "heading": "#D4E9E2", "band": "#0F241F", "band-text": "#FFFFFF", "band-muted": "#B9C8C2"},
 }
 
 # 기업 색 (고정 매핑, IA 4-1절 순서)
@@ -59,7 +62,7 @@ def style(fig, kind: str = "bar", height: str = "main"):
     axis = dict(showline=True, linewidth=1, linecolor=t["border"], zeroline=False,
                 tickfont=dict(size=12, color=t["text-muted"]))
     fig.update_layout(
-        paper_bgcolor=t["bg"], plot_bgcolor=t["bg"],
+        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",   # 캔버스·카드 어느 쪽에 놓여도 바탕을 따른다
         font=dict(family=FONT_FAMILY, size=12, color=t["text"]),
         height=HEIGHT.get(height, height) if isinstance(height, str) else height,
         margin=dict(l=8, r=8, t=8, b=8),
