@@ -33,7 +33,7 @@ _SLOTS = {
     "light": ["#716DF6", "#A20519", "#11598F", "#B0698C", "#C68206"],
     "dark": ["#737AFC", "#BA2B2E", "#0A67A9", "#EA589A", "#D79628"],
 }
-ORIGIN_COLOR = {m: dict(zip(["제공", "팀원수집", "기업명검색", "CDMO검색", "해외검색"], s)) for m, s in _SLOTS.items()}
+ORIGIN_COLOR = {m: dict(zip(["제공", "키워드 검색", "기업명검색", "CDMO검색", "해외검색"], s)) for m, s in _SLOTS.items()}
 EVENT_COLOR = {m: {"수주": s[0], "증설": s[1], "M&A·구조개편": s[2], "자금조달": s[3]} for m, s in _SLOTS.items()}
 KEYWORD_COLOR = {m: {"CDMO 모달리티": s[0], "CDMO 생산능력": s[2]} for m, s in _SLOTS.items()}
 

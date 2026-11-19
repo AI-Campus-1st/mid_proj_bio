@@ -14,12 +14,13 @@ from plotly.subplots import make_subplots
 from core import data, theme, ui
 
 LIMITS_S1 = [
-    "출처별 기사량은 따로 해석하세요. 팀원수집·CDMO검색 기사는 2026년에 몰려 있습니다.",
+    "출처별 기사량은 따로 해석하세요. CDMO검색 기사는 2026년에 몰려 있습니다.",
+    "키워드 검색 1,306건(2026년에 몰려 있음)은 기사량 추이·지표·부상 이슈에서 제외했습니다.",
     "급증은 기사 건수 기준이며 기사 내용의 중요도가 아닙니다. 판정 기준(주별 z ≥ 3, 직전 26주 중앙값)은 민감도를 검증하지 않았습니다.",
     "2024-01 중순 이전은 급증을 판정하지 않습니다.",
-    "급증 판정에서 팀원수집 1,306건은 제외했습니다.",
+    "급증 판정에서도 키워드 검색 1,306건은 제외했습니다.",
     "이슈 이름(LLM 추출)은 표본 30건 검수에서 98.7%(층 가중)가 정확했습니다.",
-    "부상 이슈는 필터 기간 끝에서 최근 3개월과 직전 3개월을 비교하며, 최근 3개월 기사 5건 이상인 이슈만 증가 건수 순으로 보입니다. 팀원수집 제외 토글을 따릅니다.",
+    "부상 이슈는 필터 기간 끝에서 최근 3개월과 직전 3개월을 비교하며, 최근 3개월 기사 5건 이상인 이슈만 증가 건수 순으로 보입니다.",
 ]
 EVENT_NOTE = "정기 행사 주간의 급증입니다 (바이오 USA 6월, CPHI 10월)"
 
@@ -38,8 +39,9 @@ def _axis(filters: dict, unit: str) -> pd.DatetimeIndex:
     return pd.date_range(s.to_period("W-SUN").start_time, e.to_period("W-SUN").start_time, freq="W-MON")
 
 
-def _by_origin(news: pd.DataFrame, filters: dict, unit: str, excl_team: bool) -> pd.DataFrame:
-    origins = [o for o in data.ORIGIN_KO.values() if not (excl_team and o == "팀원수집")]
+def _by_origin(news: pd.DataFrame, filters: dict, unit: str) -> pd.DataFrame:
+    """출처별 기사 수. 키워드 검색(origin team)은 2026년에 몰려 있어 넣지 않는다 (다른 출처는 범례로 켜고 끈다)."""
+    origins = [o for k, o in data.ORIGIN_KO.items() if k != "team"]
     df = news[news.origin_ko.isin(origins)]
     table = (df.assign(x=_bucket(df.date, unit)).pivot_table(index="x", columns="origin_ko", values="news_id",
                                                               aggfunc="count", fill_value=0)
@@ -48,12 +50,10 @@ def _by_origin(news: pd.DataFrame, filters: dict, unit: str, excl_team: bool) ->
     return table
 
 
-def _by_keyword(news: pd.DataFrame, filters: dict, unit: str, excl_team: bool) -> pd.DataFrame:
-    """대표 키워드(is_primary=1), 검색어만 근거인 기사 제외 — eda_keyword_monthly.csv 와 같은 기준."""
+def _by_keyword(news: pd.DataFrame, filters: dict, unit: str) -> pd.DataFrame:
+    """대표 키워드(is_primary=1), 검색어만 근거인 기사·키워드 검색 기사 제외 — eda_keyword_monthly.csv 와 같은 기준."""
     kw = data.news_keywords()
-    df = news[news.cdmo_kw_basis != "query"]
-    if excl_team:
-        df = df[df.origin != "team"]
+    df = news[(news.cdmo_kw_basis != "query") & (news.origin != "team")]
     k = kw[(kw.is_primary == 1) & kw.keyword.isin(filters["keywords"])].merge(df, on="news_id")
     table = (k.assign(x=_bucket(k.date, unit)).pivot_table(index="x", columns="keyword", values="news_id",
                                                             aggfunc="count", fill_value=0)
@@ -323,31 +323,29 @@ def render():
         ui.limits(LIMITS_S1)
         return
 
-    excl_team = st.session_state.get("s1_excl_team", True)
-    counted = news[news.origin != "team"] if excl_team else news
+    counted = news[news.origin != "team"]   # 키워드 검색 기사 제외 (2026년에 몰려 있음)
     ui.kpis([
         {"label": "기사 (중복 제외)", "value": f"{len(counted):,}건",
-         "help": "중복(dup_of) 제외" + (", 팀원수집 제외" if excl_team else ", 팀원수집 포함")},
+         "help": "중복(dup_of) 제외, 키워드 검색 기사 제외"},
         {"label": "급증 시점", "value": f"{len(spikes):,}회", "help": "급증 판정: 주별 z ≥ 3, eda_report 4절"},
         {"label": "최근 급증", "value": spikes.peak_week.max() if len(spikes) else "—",
          "help": "선택 범위의 급증 중 가장 최근 주(월요일)"},
     ])
     st.divider()
 
-    head, c1, c2, c3 = st.columns([3, 2, 2, 2], gap="small", vertical_alignment="bottom")
+    head, c1, c2 = st.columns([3, 2, 2], gap="small", vertical_alignment="bottom")
     head.markdown("#### 기사량 추이")
     unit = c1.segmented_control("단위", ["월", "주"], key="s1_unit", default="월", required=True)
     series = c2.segmented_control("계열", ["출처별", "키워드별"], key="s1_series", default="출처별", required=True)
-    c3.toggle("팀원수집 제외", key="s1_excl_team", value=True)
 
     if counted.empty:
         ui.empty("기사", "S1-C1")
     else:
         st.session_state["_s1_marks"] = {}  # 이번 차트에 찍은 ● (기간 → 급증), 클릭 판정용
         fkey = abs(hash((str(filters["period"]), tuple(filters["companies"]), tuple(filters["keywords"]),
-                         unit, series, excl_team)))
+                         unit, series)))
         if series == "출처별":
-            table = _by_origin(news, filters, unit, excl_team)
+            table = _by_origin(news, filters, unit)
             # 전체 기사량 차트에는 그 계열에서 판정한 급증만 찍는다: 5개사 전체면 산업 전체, 일부면 그 기업들.
             # (키워드·기업 급증까지 모두 찍으면 거의 매달 ●이 붙어 읽히지 않는다. 목록 표에는 전부 남긴다)
             all_corps = len(filters["companies"]) == len(data.COMPANIES)
@@ -357,15 +355,14 @@ def render():
             ui.empty("기사", "S1-C1-kw")
             table = None
         else:
-            table = _by_keyword(news, filters, unit, excl_team)
+            table = _by_keyword(news, filters, unit)
             _keyword_chart(table, spikes, unit, key=f"s1_chart_{fkey}")
         if spikes.empty:
             st.caption("선택한 범위에 급증 시점이 없습니다")
         if table is not None:
             out = table.copy()
             out.index = out.index.strftime("%Y-%m" if unit == "월" else "%Y-%m-%d")
-            ui.table_view(out.reset_index(), f"{unit}별 기사 수 ({series}, 중복 제외"
-                          + (", 팀원수집 제외)" if excl_team else ")"))
+            ui.table_view(out.reset_index(), f"{unit}별 기사 수 ({series}, 중복·키워드 검색 제외)")
 
     left, right = st.columns(2, gap="medium")
     with left:

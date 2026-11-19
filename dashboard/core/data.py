@@ -41,7 +41,7 @@ def meta() -> dict:
 
 # ---------------------------------------------------------------- 뉴스 (S1·S2·S3·S5 공통)
 
-ORIGIN_KO = {"provided": "제공", "team": "팀원수집", "google_company": "기업명검색",
+ORIGIN_KO = {"provided": "제공", "team": "키워드 검색", "google_company": "기업명검색",
              "google_cdmo": "CDMO검색", "google_global": "해외검색"}  # analysis/eda.py 와 같은 이름·순서
 
 
