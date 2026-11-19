@@ -4,9 +4,14 @@
 """
 from datetime import date
 
+import pandas as pd
 import streamlit as st
 
 from core.data import COMPANIES, KEYWORDS, PERIOD, meta
+
+# 기간 빠른 선택 — 데이터 마지막 날부터 거슬러 센다 (Streamlit 달력의 영어 'Date range' 는 오늘부터 세서 쓰지 않는다)
+QUICK_MONTHS = {"전체 기간": None, "최근 1개월": 1, "최근 3개월": 3, "최근 6개월": 6, "최근 1년": 12, "최근 2년": 24}
+QUICK_CUSTOM = "직접 지정"
 
 
 def _period_bounds() -> tuple:
@@ -14,6 +19,28 @@ def _period_bounds() -> tuple:
     start = date.fromisoformat(m.get("period_start", PERIOD[0]))
     end = date.fromisoformat(m.get("period_end", PERIOD[1]))
     return start, end
+
+
+def quick_range(label: str) -> tuple:
+    """빠른 선택 항목 → (시작일, 종료일). 종료일은 데이터 마지막 날, 시작일은 데이터 첫날보다 앞서지 않는다."""
+    lo, hi = _period_bounds()
+    months = QUICK_MONTHS[label]
+    if months is None:
+        return lo, hi
+    return max(lo, (pd.Timestamp(hi) - pd.DateOffset(months=months)).date()), hi
+
+
+def _quick_label(period: tuple) -> str:
+    return next((k for k in QUICK_MONTHS if quick_range(k) == tuple(period)), QUICK_CUSTOM)
+
+
+def _apply_quick() -> None:
+    """빠른 선택 → 기간 위젯·filters. '직접 지정' 은 아무것도 바꾸지 않는다."""
+    label = st.session_state.get("flt_quick")
+    if label in QUICK_MONTHS:
+        period = quick_range(label)
+        st.session_state["flt_period"] = period
+        st.session_state["filters"] = {**st.session_state["filters"], "period": period}
 
 
 def defaults() -> dict:
@@ -75,6 +102,10 @@ def render_sidebar() -> None:
     p = st.session_state.get("flt_period")
     if not (isinstance(p, (tuple, list)) and len(p) == 2):
         st.caption("종료일을 고르면 적용됩니다")
+    # 빠른 선택 표시값은 매 실행 적용 중인 기간에서 다시 정한다 (달력·초기화·화면 이동으로 기간이 바뀌어도 맞게 보임)
+    st.session_state["flt_quick"] = _quick_label(st.session_state["filters"]["period"])
+    st.selectbox("기간 빠른 선택", [*QUICK_MONTHS, QUICK_CUSTOM], key="flt_quick", on_change=_apply_quick,
+                 label_visibility="collapsed")
     f = st.session_state["filters"]
     _check_dropdown("기업", "companies", COMPANIES, "flt_co_", company_summary(f))
     if not st.session_state["filters"]["companies"]:

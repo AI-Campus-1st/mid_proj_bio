@@ -22,6 +22,14 @@ st.html(f"""<style>
   line-height: 1.2;
   color: var(--st-text-color, inherit);
 }}
+/* 기간 달력 머리: Streamlit 기본은 [월][연도] — 순서를 [연도][월]로 */
+[data-testid="stDateInputCalendar"] header > div {{
+  flex-direction: row-reverse;
+}}
+/* 달력 아래 영어 'Date range' 빠른 선택은 숨긴다 — 오늘부터 세서 데이터 기간과 안 맞음. 한국어 빠른 선택은 filters.py */
+[data-testid="stDateInputQuickSelect"] {{
+  display: none;
+}}
 </style>""")
 
 with st.sidebar:
