@@ -1,6 +1,6 @@
 # Day 3 — 텍스트 정제와 EDA
 
-> **상태:** 작성 완료 · **최종 갱신:** 2026-11-16
+> **상태:** 작성 완료 · **최종 갱신:** 2026-11-19
 > **산출 기준:** `data/db/bio_cdmo.sqlite` 2026-11-16 빌드 (뉴스 9,216건 · 공시 867건), `analysis/eda.py`
 > **관련 문서:** [news_sort](news_sort.md) · [data_schema](data_schema.md) · [PRD F1](02_product-requirements/PRD.md) · [ACCEPTANCE_CRITERIA AC-03](02_product-requirements/ACCEPTANCE_CRITERIA.md)
 > **재현:** `python db/build_db.py` → `python analysis/eda.py` (정제 점검은 `python analysis/clean_text.py`)
@@ -265,7 +265,7 @@
 | Day 4 LLM 이슈 추출 | 입력은 `news_clean` 을 쓴다. 급증 67건(`eda_spikes.csv`)에 이슈 유형(사업/행사/홍보)을 붙이면 홍보성 급증을 걸러낼 수 있다 |
 | Day 4 감성 분류 | 처리 범위를 3-2절 권장 범위(4,151건)와 맞출지 확인이 필요하다. 감성 분류 문서(`04_ai/AI_CLASSIFICATION.md`, 다른 브랜치에서 작성 중)는 4,727건을 범위로 잡고 있다 |
 | Day 5 공시 Q&A | 기업 급증 중 공시가 확인된 사례(4-3절 표)를 Q&A 평가 질문으로 쓸 수 있다 (예: "에스티팜의 2026년 9월 수주 계약 규모는?") |
-| Day 6 대시보드 (F1) | 월별 기사량 차트는 수집출처 필터 또는 "팀원수집 제외" 기본값이 필요하다. 급증 표시에는 행사 주간(바이오 USA, CPHI) 주석을 붙인다. 집계 CSV를 그대로 읽을 수 있다 |
+| Day 6 대시보드 (F1) | 월별 기사량 차트는 수집출처 필터 또는 "팀원수집 제외" 기본값이 필요하다(구현: S1은 팀원수집을 늘 제외, 2026-11-19). 급증 표시에는 행사 주간(바이오 USA, CPHI) 주석을 붙인다. 집계 CSV를 그대로 읽을 수 있다 |
 
 ## 7. 한계
 

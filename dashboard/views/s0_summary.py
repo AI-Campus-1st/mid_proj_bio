@@ -8,7 +8,7 @@
   ④ 기회 요인 타일 / ⑤ 위험 요인 타일 (3열)
   ⑦ 최근 주요 공시 표 (행 선택 → 이 공시에 질문)
 결론·카드는 analysis/build_summary_cards.py 가 만든 data/processed/summary_cards.json (전체 기간 고정 요약).
-필터는 카드를 거르고 지표·차트·표를 다시 센다 (U1 제안대로 — 팀 확인 전). 사용자 CSS 는 쓰지 않는다 (명세 2절).
+필터는 카드를 거르고 지표·차트·표를 다시 센다 (U1 제안대로 — 팀 확인 전). 테마로 안 되는 꾸밈(결론 띠·예시 질문 버튼 등)은 core/style.py 의 CSS (DESIGN.md).
 """
 import json
 import re

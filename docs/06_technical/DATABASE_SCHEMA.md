@@ -1,6 +1,6 @@
 # 데이터베이스 스키마
 
-> **상태:** 작성 완료 — `docs/data_schema.md` 전체를 옮기고, DB 밖 산출물(LLM·매칭·금액·요약 CSV, RAG 색인)과의 연결·재빌드 시 보존 규칙을 더함 · **최종 갱신:** 2026-11-18
+> **상태:** 작성 완료 — `docs/data_schema.md` 전체를 옮기고, DB 밖 산출물(LLM·매칭·금액·요약 CSV, RAG 색인)과의 연결·재빌드 시 보존 규칙을 더함 · **최종 갱신:** 2026-11-19
 > **원본:** `docs/data_schema.md` (전체), `db/schema.sql`, `db/build_db.py`
 > **관련 문서:** [masterplan](../masterplan.md) · [DATA_PIPELINE](../03_data/DATA_PIPELINE.md) · `SYSTEM_ARCHITECTURE.md` · [NEWS_DISCLOSURE_MATCHING](../04_ai/NEWS_DISCLOSURE_MATCHING.md) · [UI_SPECIFICATION](../05_design/UI_SPECIFICATION.md)
 
@@ -217,7 +217,7 @@ LLM 결과·매칭·금액·요약은 **DB 테이블이 아니라 `data/processe
 ## 7. 한계와 유의점
 
 - **구글 뉴스 수집분에는 본문이 없다.** 제목·매체·일자·링크만 있다. 본문 기반 분석(감성 분류 등)은 `provided`·`team` 또는 제목 기준으로 범위를 정해야 한다.
-- **해외 뉴스는 영어 원문이다.** 화면에는 번역 제목(`title_ko`)과 원제목을 함께 보여준다(번역은 미리 만든 것이고 화면에서 호출하지 않는다, PRD N2). 번역 품질은 표본 검수 전이다. 국내 기사와 언어가 달라 같은 사건이 국내·해외 기사로 각각 남는다.
+- **해외 뉴스는 영어 원문이다.** 화면에는 번역 제목(`title_ko`)과 원제목을 함께 보여준다(번역은 미리 만든 것이고 화면에서 호출하지 않는다, PRD N2). 번역 품질은 표본 30건 검수에서 의미·숫자·이름이 모두 맞았다(30/30, AI_EVALUATION 10절). 국내 기사와 언어가 달라 같은 사건이 국내·해외 기사로 각각 남는다.
 - **CDMO 키워드는 규칙 기반 분류이고 정확도를 검수하지 않았다.** `cdmo_kw_basis='query'` (1,045건, 해외 검색 159건 포함)는 제목에 단서가 없어 검색어를 따른 것으로 신뢰도가 낮다. 자세한 한계는 `docs/news_sort.md` 5절에 있다.
 - **`match_field='query'` 는 관련도가 낮다.** 기업명 검색에 걸렸으나 제목에는 기업명이 없는 기사로, 무관한 기사가 섞여 있다. 기업 단위 분석은 `title`·`body` 만 쓰는 것을 권장한다.
 - **출처마다 시기 분포가 다르다.** 팀원 수집과 CDMO 검색은 2026년에 몰려 있다. 기사량 추이는 `origin` 별로 나눠 해석한다.

@@ -1,6 +1,6 @@
 # 시스템 구조
 
-> **상태:** 작성 완료 — 계층과 구성 요소별 책임·디렉터리, 저장소, 대시보드 내부 구조, 실시간 호출을 하지 않는 구조, 실행 환경·비밀 정보 · **최종 갱신:** 2026-11-18
+> **상태:** 작성 완료 — 계층과 구성 요소별 책임·디렉터리, 저장소, 대시보드 내부 구조, 실시간 호출을 하지 않는 구조, 실행 환경·비밀 정보 · **최종 갱신:** 2026-11-19
 > **원본:** `README.md` 디렉터리·실행 순서, `docs/data_schema.md` 1절, 코드 (`collect/`, `analysis/`, `db/`, `rag/`, `dashboard/`). 과제 가이드(`docs/중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md`) 5·6·7절
 > **관련 문서:** [masterplan](../masterplan.md) · [DATA_PIPELINE](../03_data/DATA_PIPELINE.md) (단계별 입출력·실행 순서) · [DATABASE_SCHEMA](DATABASE_SCHEMA.md) · [API_SPECIFICATION](API_SPECIFICATION.md) · [TECH_STACK](TECH_STACK.md)
 
@@ -44,8 +44,9 @@ dashboard/app.py                 페이지 설정 → 사이드바(필터) → s
 ├── core/
 │   ├── filters.py               기간·기업·카테고리 위젯, st.session_state["filters"], 필터 상태 줄
 │   ├── data.py                  DB(읽기 전용)·CSV 읽기(st.cache_data), 필터 규칙(filter_news, filter_links …)
-│   ├── ui.py                    공통 부품(header, kpis, pending, empty, limits, news_line …)
-│   └── theme.py                 색 토큰, Plotly 스타일, 모든 차트를 그리는 show()
+│   ├── ui.py                    공통 부품(header, kpis, card, table_view, pending, empty, limits, news_line …)
+│   ├── theme.py                 색 토큰, Plotly 스타일, 모든 차트를 그리는 show()
+│   └── style.py                 테마로 안 되는 CSS(카드 면·그림자, 버튼, 제목 색, S0 결론 띠) — DESIGN.md 기준
 └── views/                       화면 7개 — 각자 render() 하나
     s0_summary  s1_trend  s2_policy  s3_tech  s4_compare  s5_linkage  s6_qa
 ```
@@ -54,7 +55,7 @@ dashboard/app.py                 페이지 설정 → 사이드바(필터) → s
 |---|---|
 | 화면은 필터만 읽는다 | 위젯 값은 콜백에서 `filters` 로 옮기고, 화면 코드는 `st.session_state["filters"]` 만 읽는다. 화면을 옮겨도 필터가 유지된다 |
 | 데이터 읽기는 한 곳 | `core/data.py` 가 DB·CSV를 읽고 캐시한다. 필터 규칙(UI_SPECIFICATION 4-2절)도 여기 있어 화면마다 같은 규칙을 쓴다 |
-| 시각 값은 두 곳 | `.streamlit/config.toml`(테마)과 `core/theme.py`(차트 색·스타일)에만 둔다. 화면 코드는 색을 직접 쓰지 않는다 |
+| 시각 값은 정해진 곳에만 | `.streamlit/config.toml`(테마), `core/theme.py`(색 토큰·차트 스타일), `core/style.py`(테마로 안 되는 CSS — 색은 theme 토큰에서), `app.py`(사이드바 제목·달력 CSS)에만 둔다. 화면 코드는 색을 직접 쓰지 않는다 |
 | 화면 간 이동 | `st.switch_page` + 세션 상태 (카드 → 상세 화면 L1, 공시 → Q&A L8, 요약 검색창 → Q&A) |
 | 실패를 화면 안에 가둔다 | 파일·DB가 없으면 그 화면만 "데이터 오류" 안내, Q&A 설정 문제는 S6만 "설정 확인" 안내. 다른 화면은 계속 동작 |
 

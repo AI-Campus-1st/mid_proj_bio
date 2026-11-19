@@ -1,6 +1,6 @@
 # 제품 요구사항 정의 (PRD)
 
-> **상태:** 작성 완료 · **최종 갱신:** 2026-11-13
+> **상태:** 작성 완료 · **최종 갱신:** 2026-11-19
 > **원본:** `docs/dashboard_questions.md` 3·4·7절, `중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md` 3·6·8절
 > **관련 문서:** [PRODUCT_VISION](../01_product-strategy/PRODUCT_VISION.md) · [USER_STORIES](USER_STORIES.md) · [ACCEPTANCE_CRITERIA](ACCEPTANCE_CRITERIA.md)
 
@@ -27,7 +27,7 @@
 | 우선순위 | P0 |
 | 답하는 질문 | 지금 가장 중요한 이슈는 무엇이고, 무엇이 새로 부상하고 있는가 |
 | 화면 구성 | 월별 기사량 추이(중복 제외), 이슈 급증 시점 표시, 기간별 상위 이슈 목록, 이슈별 대표 기사 |
-| 분석 방법 | 기사량 시계열 + 변화점 탐지(`ruptures`), LLM 이슈 추출로 기사를 이슈 단위로 묶음, 직전 기간 대비 증가율로 "부상 이슈" 판정 |
+| 분석 방법 | 기사량 시계열 + 급증 판정(주별 z ≥ 3, 직전 26주 중앙값·MAD 기준 — `analysis/eda.py`), LLM 이슈 추출로 기사를 이슈 단위로 묶음, 직전 기간 대비 증가율로 "부상 이슈" 판정 |
 | 데이터 | `news` (`dup_of IS NULL`), `news_cdmo_keywords` (CDMO 키워드 6개), `news_keywords.category`, `cdmo_mention` |
 
 ### F2. 규제·정책 모니터링 — 정책·규제 / SQ2

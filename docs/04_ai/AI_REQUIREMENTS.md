@@ -1,6 +1,6 @@
 # AI 요구사항
 
-> **상태:** 작성 완료 — AI 기능 목록과 PRD 대응, 기능별 처리 범위와 근거, 사전 생성 원칙과 저장 위치, RAG 필수 조건, 모델·비용·호출량, 키 관리, 검증 현황 · **최종 갱신:** 2026-11-18
+> **상태:** 작성 완료 — AI 기능 목록과 PRD 대응, 기능별 처리 범위와 근거, 사전 생성 원칙과 저장 위치, RAG 필수 조건, 모델·비용·호출량, 키 관리, 검증 현황 · **최종 갱신:** 2026-11-19
 > **원본:** 과제 가이드(`docs/중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md`) 1·3·6절, [PRD](../02_product-requirements/PRD.md) 2·3절, [AI_CLASSIFICATION](AI_CLASSIFICATION.md), [NEWS_DISCLOSURE_MATCHING](NEWS_DISCLOSURE_MATCHING.md), [AI_EVALUATION](AI_EVALUATION.md), 팀원 기록 파일(비용)
 > **관련 문서:** [masterplan](../masterplan.md) · [AI_CLASSIFICATION](AI_CLASSIFICATION.md) (프롬프트·출력) · [AI_EVALUATION](AI_EVALUATION.md) (검수) · [TECH_STACK](../06_technical/TECH_STACK.md) 5절 (모델) · [API_SPECIFICATION](../06_technical/API_SPECIFICATION.md)
 
@@ -27,7 +27,7 @@
 | T2 | 핵심 이슈 추출 — 이슈 이름·유형·키워드 | LLM (`issue-v1`) | F1, F6 | S0 카드 주제 선정 | ✅ 4,727건, 표본 30건 검수(이름 98.7%·유형 97.4%, 층 가중) |
 | T2-b | 이슈 이름 묶기 — 같은 사건의 다른 이름을 대표 이름으로 | LLM (`issue-group-v1`) | F1 | S0 카드 주제 선정 | ✅ 3,581개 → 2,706그룹 |
 | T3 | 모달리티 태깅 — 항체·ADC·mRNA·세포유전자·올리고·펩타이드·백신 | LLM (`modality-v2`) | F3 | S3 | ✅ 4,727건, 표본 80건 검수(정밀도 91.7%) |
-| T4 | 영어 기사 제목 번역 | LLM (`translate-v3`) | F8, F2 | S2 등 영어 기사 | ✅ 797건, 품질 검수 전 |
+| T4 | 영어 기사 제목 번역 | LLM (`translate-v3`) | F8, F2 | S2 등 영어 기사 | ✅ 797건, 품질 표본 30건 검수 30/30 |
 | R1 | 공시 RAG 질의응답 | 임베딩 + LLM, 인용 검증 | F5 | S6 | ✅ 평가 20문항 |
 | — | 요약 결론·기회/위험 카드 | **LLM 자동 생성 아님** — Claude(작업 도구)가 T1·T2 결과로 초안, 팀이 확정, 근거는 스크립트로 추출 | F6 | S0 | ✅ 카드 8개 ([DECISIONS](../07_project-management/DECISIONS.md) D-30) |
 | — | 뉴스 CDMO 키워드 분류, 뉴스-공시 매칭, 계약 금액 | **AI 아님** — 규칙·정규식 | F1, F4, F5 | 사이드바 카테고리, S4, S5 | [NEWS_CLASSIFICATION](../03_data/NEWS_CLASSIFICATION.md), NEWS_DISCLOSURE_MATCHING 3절, [CONTRACT_AMOUNTS](../03_data/CONTRACT_AMOUNTS.md) |
@@ -82,7 +82,7 @@
 | T1 감성 | 표본 검수로 정확도 기록 (가이드 필수) | ✅ 표본 180건(층화, 3인 검수 후 정답 확정): 85.0%, 층 가중 84.2% | — |
 | T2 이슈 | 같음 (가이드 3-1 목표 4) | ✅ 표본 30건(층화, 판정 `dtt-dtdt`): 이름 98.7% · 유형 97.4% · 묶기 98.7% (층 가중). 오류는 지엽적 구절을 핵심 사건으로 잡은 경우 등 | — |
 | T3 모달리티 | 정밀도·재현율 | ✅ 표본 80건(1차 Claude 블라인드, 사람 확인): 정밀도 91.7%, 재현율 98.1% | — |
-| T4 번역 | 의미·숫자·이름 보존 | 🔶 표기 목록 적용 236/237 자동 점검, **품질 표본 검수 전** | 품질 표본 검수 |
+| T4 번역 | 의미·숫자·이름 보존 | ✅ 표기 목록 적용 236/237 자동 점검, 품질 표본 30건 사람 검수 의미·숫자·이름 30/30 (오류율 상한 약 10%, AI_EVALUATION 10절) | — |
 | R1 RAG | 근거 일치, 거절, 환각 | ✅ 질문 20개: 검색 12/14, 거절 6/6, 근거 일치 12/13 | 날짜 순서("최근")를 묻는 질문 대응 |
 
 검수 방법과 결과는 [AI_EVALUATION](AI_EVALUATION.md). 화면의 "데이터 범위·한계"에 각 기능의 검수 상태를 그대로 적는다 (S2·S3·S6 한계 문구).

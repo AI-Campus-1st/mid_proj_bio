@@ -1,6 +1,6 @@
 # 마일스톤
 
-> **상태:** 작성 완료 — Day 1~7 완료 조건과 실제 완료일(2026-11-18 기준 Day 6까지), 제출물 상태, `main` 반영 기록 · **최종 갱신:** 2026-11-18
+> **상태:** 작성 완료 — Day 1~7 완료 조건과 실제 완료일(2026-11-19 기준 Day 6까지), 제출물 상태, `main` 반영 기록 · **최종 갱신:** 2026-11-19
 > **원본:** 과제 가이드(`docs/중간프로젝트_가이드_뉴스공시_산업이슈_대시보드.md`) 3·4·7절, [PRODUCT_ROADMAP](../02_product-requirements/PRODUCT_ROADMAP.md) 1절, 팀원 기록 파일, git 기록
 > **관련 문서:** [masterplan](../masterplan.md) · [PRODUCT_ROADMAP](../02_product-requirements/PRODUCT_ROADMAP.md) · [TASKS](TASKS.md) · [DECISIONS](DECISIONS.md) · [TEST_PLAN](TEST_PLAN.md)
 
@@ -18,8 +18,8 @@
 | **Day 3** 전처리 및 EDA | 이슈 급증 시점을 근거와 함께 제시할 수 있다 | 11-16 | ✅ | 정규표현식 정제(`news_clean`), 중복 표시, 급증 시점 67건과 대표 기사·공시 (`docs/eda_report.md`) |
 | **Day 4** AI 기반 이슈 추출 | 분류 결과와 검수 결과가 존재한다 | 11-17 | ✅ | 감성 4,727건 + 표본 180건 검수(정확도 85.0%). 이슈 추출 4,727건과 이슈 추출 표본 30건 검수(층 가중 이름 98.7%·유형 97.4%·묶기 98.7%, 2026-11-18), 모달리티 태깅(11-18, 표본 80건 검수), 영어 번역(11-18, 품질 검수 전) |
 | **Day 5** RAG 공시 Q&A 구축 | 근거 공시와 함께 답변한다 | 11-17 | ✅ | 청크 36,548개 색인, `rag/qa.py`, 평가 20문항(검색 12/14, 거절 6/6). 뉴스-공시 매칭 7,135쌍과 표본 50쌍 검수(11-18) |
-| **Day 6** 대시보드 구현 | 필터가 모든 차트에 반영된다 | 11-18 | ✅ | S0~S6 7개 화면, 7화면 × 필터 18조합 자동 점검 오류 0 ([TEST_PLAN](TEST_PLAN.md) 2절) |
-| **Day 7** 고도화 및 발표 | 처음 보는 사람이 결론을 이해할 수 있다 | — | ⬜ 착수 전 | S0 결론 문장·카드는 있음(11-18). 스토리텔링 구성, LLM 한계 회고, 리포트·발표는 남음 |
+| **Day 6** 대시보드 구현 | 필터가 모든 차트에 반영된다 | 11-18 | ✅ | S0~S6 7개 화면, 7화면 × 필터 17조합 자동 점검 오류 0 ([TEST_PLAN](TEST_PLAN.md) 2절) |
+| **Day 7** 고도화 및 발표 | 처음 보는 사람이 결론을 이해할 수 있다 | — | 🔶 진행 중 | S0 결론 문장·카드(11-18), 결론 문구 실무 표현으로 정리(11-19 "지금 CDMO 시장 현황은 우호적"), LLM 한계 회고 초안, 리포트 초안(11-19 `docs/REPORT.md`·PDF). 스토리텔링 구성·발표는 남음 |
 
 가이드 4절대로 Day 4와 Day 5를 나눠 병행했다 (11-17에 감성·이슈 추출과 RAG 색인·질의응답이 같은 날 진행).
 
@@ -43,7 +43,7 @@
 |---|---|---|
 | 1. 코드 저장소 — 계층별 디렉터리, README에 실행 순서 | ✅ | `collect/` → `analysis/` → `db/` → `rag/` → `dashboard/`. README 실행 순서는 DB 구축·RAG·대시보드까지. LLM 분석 단계 순서는 [DATA_PIPELINE](../03_data/DATA_PIPELINE.md) 3절에만 있음 |
 | 2. 동작하는 Streamlit 대시보드 — 로컬 실행 또는 배포 URL | ✅ 로컬 | 배포는 하지 않음. 실행 PC에 DB와 `chroma_db/` 가 필요 ([SYSTEM_ARCHITECTURE](../06_technical/SYSTEM_ARCHITECTURE.md) 6절) |
-| 3. 리포트 (PDF) | ⬜ | 구성(가이드 7절): 분석 목적 · 데이터 · EDA · AI 이슈 분석 · 공시 Q&A · 대시보드 · 회고 |
+| 3. 리포트 (PDF) | 🔶 초안 — [REPORT.md](../REPORT.md), `docs/REPORT.pdf` (A4 13쪽, 11-19), 팀 검토 전 | 구성(가이드 7절): 분석 목적 · 데이터 · EDA · AI 이슈 분석 · 공시 Q&A · 대시보드 · 회고 |
 | 4. 발표 (PPT) | ⬜ | 발표자료에 키가 없는지 만든 뒤 확인 ([TEST_PLAN](TEST_PLAN.md) 4절) |
 
 리포트 각 장의 재료가 있는 문서: 분석 목적 — 01 섹션 / 데이터 — 03 섹션, DATABASE_SCHEMA / EDA — `eda_report.md` / AI 이슈 분석 — AI_CLASSIFICATION, AI_EVALUATION / 공시 Q&A — NEWS_DISCLOSURE_MATCHING 4절, AI_EVALUATION 6절 / 대시보드 — 05 섹션, S0 결론 / 회고 — DECISIONS, 팀원 기록 파일.

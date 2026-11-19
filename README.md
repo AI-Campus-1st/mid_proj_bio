@@ -30,7 +30,7 @@
 | `analysis/` | 분석 계층 — 기업 선정용 공시 가중 점수, 뉴스 통합·재분류, 텍스트 정제(`clean_text.py`), EDA(`eda.py`) |
 | `rag/` | 공시 RAG — 색인(`build_index.py`), 질의응답(`qa.py`), 평가(`eval_rag.py`) |
 | `tests/` | 대시보드 통합 점검 — 7개 화면 × 필터 조합 자동 실행(`check_dashboard_filters.py`, API 호출 없음). 결과는 `docs/07_project-management/TEST_PLAN.md` |
-| `dashboard/` | Streamlit 대시보드 — 실행 파일(`app.py`), 공통(`core/`: 화면 부품·필터·데이터 읽기·색), 화면(`views/` S0~S6). 테마는 루트 `.streamlit/config.toml` |
+| `dashboard/` | Streamlit 대시보드 — 실행 파일(`app.py`), 공통(`core/`: 화면 부품·필터·데이터 읽기·색), 화면(`views/` S0~S6). 테마는 루트 `.streamlit/config.toml`, 테마로 안 되는 카드·버튼·결론 띠 스타일은 `core/style.py`(`DESIGN.md` 기준) |
 | `data/raw/` | 수집 원본 (JSON, JSONL, zip) |
 | `data/processed/` | 분석 산출물 — 기업 선정 점수, EDA 집계표(`eda_*.csv`) |
 | `data/db/` | 통합 DB `bio_cdmo.sqlite` (git 제외, 아래 순서로 재생성) |
@@ -44,7 +44,7 @@
 | 영역 | 사용 도구 |
 |---|---|
 | 저장·처리 | SQLite, `pandas`, `numpy`, `SQLAlchemy` |
-| EDA·시계열 | `statsmodels`, `ruptures`(변화점 탐지), `scikit-learn`, `kiwipiepy`(한국어 형태소 분석) |
+| EDA·시계열 | `statsmodels`, `ruptures`, `scikit-learn`, `kiwipiepy`(한국어 형태소 분석) — 급증 판정은 라이브러리 대신 직접 쓴 규칙(주별 z ≥ 3, `analysis/eda.py`) |
 | 시각화 | `matplotlib`, `seaborn`, `plotly` |
 | LLM·RAG | `openai`(감성 분류·RAG), `langchain`, `chromadb` |
 | 대시보드 | `streamlit` |
