@@ -44,6 +44,13 @@ button[data-testid^="stBaseButton-primary"] {{ font-weight: 600; }}
   border-radius: 12px;
   padding: 1.5rem 1.75rem;
 }}
-.st-key-s0_hero h3, .st-key-s0_hero p, .st-key-s0_hero span {{ color: {t["band-text"]}; }}
+.st-key-s0_hero h1, .st-key-s0_hero h3, .st-key-s0_hero p, .st-key-s0_hero li,
+.st-key-s0_hero span {{ color: {t["band-text"]}; }}
 .st-key-s0_hero [data-testid="stCaptionContainer"] p {{ color: {t["band-muted"]}; }}
+/* 판단 단어: 진녹색 면에서 읽히는 밝은 파랑·빨강·회색 (config.toml 다크 테마 글자색과 같은 값) */
+.st-key-s0_verdict_good .stMarkdownColoredText {{ color: #A9CDF5 !important; }}
+.st-key-s0_verdict_bad .stMarkdownColoredText {{ color: #F2A0A0 !important; }}
+.st-key-s0_verdict_neutral .stMarkdownColoredText {{ color: #D0DAD6 !important; }}
+/* 띠 안 수치 상자: 반투명 테두리 */
+.st-key-s0_hero_stats {{ border-color: rgba(255,255,255,0.28) !important; background: rgba(255,255,255,0.05); }}
 </style>""")
