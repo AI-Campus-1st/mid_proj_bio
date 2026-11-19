@@ -81,6 +81,8 @@ def _company_chart(df: pd.DataFrame, key: str) -> None:
     fig.update_xaxes(showgrid=True, gridcolor=theme.TOKENS[mode]["grid"])
     theme.show(fig, key=key, alt="5개사별 규제·정책 기사 언급 수 (제목·본문에 기업명이 있는 기사)")
     st.caption("기업명이 제목·본문에 나온 기사 수입니다. 한 기사에 여러 기업이 나오면 기업마다 셉니다.")
+    ui.table_view(pd.DataFrame({"기업": counts.index, "기사 수": counts.values}),
+                  "기업별 규제·정책 기사 수 (제목·본문에 기업명이 있는 기사, 한 기사가 여러 기업에 셈)")
 
 
 def _article_row(r: pd.Series) -> None:

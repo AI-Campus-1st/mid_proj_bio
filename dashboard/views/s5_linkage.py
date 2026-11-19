@@ -90,6 +90,13 @@ def _volume_vs_disclosures(filters: dict, fkey: int) -> None:
     theme.show(fig, key=key, alt=f"{corp} 주별 기사 수(위)와 공시 접수일(아래 ▼, 속 빈 표식은 정정)",
                on_select=lambda: _pick_disclosure(key), selection_mode="points")
     st.caption("위: 기업명이 제목·본문에 나온 주별 기사 수. 아래: 공시 접수일(▼, 속 빈 표식은 정정). ▼을 누르면 아래에 공시가 보입니다.")
+    # 표로 보기 (UI 명세 3-2·8절 — 모든 차트 아래): 차트와 같은 주 단위로 기사 수와 그 주의 공시를 함께 보여 준다
+    dweek = disc.date.dt.to_period("W-SUN").dt.start_time
+    tag = [" (정정)" if a and "정정" not in n else "" for a, n in zip(disc.is_amended, disc.report_nm)]  # 이름에 없을 때만
+    names = (disc.event_class + ": " + disc.report_nm + tag).groupby(dweek).agg(" / ".join)
+    tbl = pd.DataFrame({"주 시작일": vol.index.strftime("%Y-%m-%d"), "기사 수": vol.values,
+                        "공시": names.reindex(vol.index).fillna("").values})
+    ui.table_view(tbl, f"{corp} 주별 기사 수와 그 주에 접수된 공시 (분류: 공시명)")
 
     sel = disc[disc.rcept_no == st.session_state.get("s5_rcept")]
     if not sel.empty:
