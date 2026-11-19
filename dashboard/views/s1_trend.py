@@ -65,9 +65,9 @@ def _by_keyword(news: pd.DataFrame, filters: dict, unit: str, excl_team: bool) -
 # ---------------------------------------------------------------- 선택 상태 (s1_spike, L3)
 
 def _select_from_table() -> None:
-    rows = st.session_state["s1_spike_tbl"]["selection"]["rows"]
+    row = ui.selected_row("s1_spike_tbl")
     ids = st.session_state.get("_s1_tbl_ids", [])
-    st.session_state["s1_spike"] = ids[rows[0]] if rows and rows[0] < len(ids) else None
+    st.session_state["s1_spike"] = ids[row] if row is not None and row < len(ids) else None
 
 
 def _select_from_chart(key: str) -> None:
@@ -173,7 +173,7 @@ def _spike_table(spikes: pd.DataFrame) -> None:
         "상위어": spikes.top_terms.map(lambda s: ", ".join(s.split(", ")[:5])),
     })
     st.dataframe(view, hide_index=True, width="stretch", height=360, key="s1_spike_tbl",
-                 on_select=_select_from_table, selection_mode="single-row",
+                 on_select=_select_from_table, selection_mode=ui.ROW_CLICK_MODES,
                  column_config={"상위어": st.column_config.TextColumn(width="large"),
                                 "평소": st.column_config.NumberColumn(format="%.1f"),
                                 "z": st.column_config.NumberColumn(format="%.1f")})
@@ -240,9 +240,9 @@ def _emerging(news: pd.DataFrame, filters: dict) -> dict:
 
 
 def _select_issue() -> None:
-    rows = st.session_state["s1_issue_tbl"]["selection"]["rows"]
+    row = ui.selected_row("s1_issue_tbl")
     ids = st.session_state.get("_s1_issue_ids", [])
-    st.session_state["s1_issue"] = ids[rows[0]] if rows and rows[0] < len(ids) else None
+    st.session_state["s1_issue"] = ids[row] if row is not None and row < len(ids) else None
 
 
 def _go_linkage(companies: list, period: tuple) -> None:
@@ -262,18 +262,18 @@ def _linkage_page():
 
 
 def _emerging_section(news: pd.DataFrame, filters: dict) -> None:
-    st.markdown("#### 부상 이슈 (직전 3개월 대비) :gray-badge[AI 생성]")
+    st.markdown("#### 부상 이슈 (직전 3개월 대비)")
     g = _emerging(news, filters)
     if g["table"] is None:
         st.caption(g["reason"])
         return
     table = g["table"]
-    st.caption(f"최근 3개월 {g['cur'][0]:%Y-%m-%d}~{g['cur'][1]:%Y-%m-%d} vs 직전 {g['prev'][0]:%Y-%m-%d}~"
+    st.caption(f"최근 3개월 {g['cur'][0]:%Y-%m-%d} \\~{g['cur'][1]:%Y-%m-%d} vs 직전 {g['prev'][0]:%Y-%m-%d} \\~"
                f"{g['prev'][1]:%Y-%m-%d} · 최근 기사 {EMERGE_MIN}건 이상, 증가 건수 순 · 이슈 이름은 LLM 추출 결과입니다 "
                "(표본 사람 검수 이름 98.7%)")
     st.session_state["_s1_issue_ids"] = table["이슈명"].tolist()
     st.dataframe(table, hide_index=True, width="stretch", height=min(36 * (len(table) + 1) + 4, 400),
-                 key="s1_issue_tbl", on_select=_select_issue, selection_mode="single-row",
+                 key="s1_issue_tbl", on_select=_select_issue, selection_mode=ui.ROW_CLICK_MODES,
                  alt="부상 이슈 — 최근 3개월 기사 수가 직전 3개월보다 많이 늘어난 순",
                  column_config={"이슈명": st.column_config.TextColumn(width="large")})
     sel = st.session_state.get("s1_issue")

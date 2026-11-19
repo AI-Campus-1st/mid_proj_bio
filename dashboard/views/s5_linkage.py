@@ -123,9 +123,9 @@ def _issues(links: pd.DataFrame, filters: dict) -> pd.DataFrame:
 
 
 def _select_issue() -> None:
-    rows = st.session_state["s5_issue_tbl"]["selection"]["rows"]
+    row = ui.selected_row("s5_issue_tbl")
     ids = st.session_state.get("_s5_issue_ids", [])
-    st.session_state["s5_issue"] = ids[rows[0]] if rows and rows[0] < len(ids) else None
+    st.session_state["s5_issue"] = ids[row] if row is not None and row < len(ids) else None
 
 
 def _related(links: pd.DataFrame, issue: str) -> pd.DataFrame:
@@ -193,7 +193,7 @@ def _issue_table(links: pd.DataFrame, filters: dict) -> None:
             st.session_state["_s5_issue_ids"] = issues.issue.tolist()
             view = issues.rename(columns={"issue": "이슈", "articles": "연결 기사", "disclosures": "연결 공시"})
             st.dataframe(view[["이슈", "연결 기사", "연결 공시"]], hide_index=True, width="stretch", height=420,
-                         key="s5_issue_tbl", on_select=_select_issue, selection_mode="single-row",
+                         key="s5_issue_tbl", on_select=_select_issue, selection_mode=ui.ROW_CLICK_MODES,
                          column_config={"이슈": st.column_config.TextColumn(width="medium"),
                                         "연결 기사": st.column_config.NumberColumn(width="small"),
                                         "연결 공시": st.column_config.NumberColumn(width="small")})

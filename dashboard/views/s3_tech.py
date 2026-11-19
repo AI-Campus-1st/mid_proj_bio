@@ -90,7 +90,7 @@ def _growth(tagged: pd.DataFrame, filters: dict) -> dict:
 
 
 def _growth_kpi(g: dict) -> dict:
-    span = (f"직전 {g['prev'][0]:%Y-%m-%d}~{g['prev'][1]:%Y-%m-%d} · 최근 {g['cur'][0]:%Y-%m-%d}~{g['cur'][1]:%Y-%m-%d}")
+    span = (f"직전 {g['prev'][0]:%Y-%m-%d} \\~{g['prev'][1]:%Y-%m-%d} · 최근 {g['cur'][0]:%Y-%m-%d} \\~{g['cur'][1]:%Y-%m-%d}")
     rule = "사이드바 기간 끝 날짜 기준 최근 3개월과 직전 3개월 비교, 증가 건수 순."
     if g["top"] is None:
         return {"label": "최다 증가 모달리티", "value": "—", "help": f"{g['reason']}. {rule}"}
@@ -244,8 +244,8 @@ def render():
         if growth["table"] is not None:
             with st.expander("최근 3개월 증감 (최다 증가 모달리티의 근거)"):
                 st.dataframe(growth["table"], hide_index=True, width="stretch", alt="모달리티별 최근 3개월과 직전 3개월 기사 수")
-                st.caption(f"직전 {growth['prev'][0]:%Y-%m-%d}~{growth['prev'][1]:%Y-%m-%d} · "
-                           f"최근 {growth['cur'][0]:%Y-%m-%d}~{growth['cur'][1]:%Y-%m-%d} · 증가 건수 순. "
+                st.caption(f"직전 {growth['prev'][0]:%Y-%m-%d} \\~{growth['prev'][1]:%Y-%m-%d} · "
+                           f"최근 {growth['cur'][0]:%Y-%m-%d} \\~{growth['cur'][1]:%Y-%m-%d} · 증가 건수 순. "
                            "한 기사에 태그가 여러 개면 각 모달리티에 셉니다.")
 
     head, ctl = st.columns([3, 2], vertical_alignment="bottom")

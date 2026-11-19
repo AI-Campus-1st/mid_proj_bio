@@ -132,3 +132,26 @@ def table_view(df, label: str) -> None:
     with st.expander("표로 보기"):
         st.dataframe(df, hide_index=True, width="stretch")
         st.caption(label)
+
+
+ROW_CLICK_MODES = ["single-row", "single-cell"]   # 행 체크박스 + 아무 칸 클릭으로 행 선택
+
+
+def selected_row(key: str) -> int | None:
+    """행 선택 표(selection_mode=ROW_CLICK_MODES)의 선택 행 위치. on_select 콜백 안에서 부른다.
+
+    칸을 누르면 그 칸의 행을 체크된 행으로 바꾸고 칸 선택은 지운다. 이미 체크된 행의 칸을 다시 누르면 해제한다.
+    체크박스를 직접 눌러 끄는 것도 해제다. 표를 정렬해도 위치는 원래 표 기준이다.
+    """
+    sel = st.session_state[key]["selection"]
+    last = st.session_state.get(f"_{key}_row")
+    cells = list(sel.get("cells") or [])
+    if cells:
+        row = int(cells[0][0])
+        row = None if row == last else row
+        st.session_state[key] = {"selection": {"rows": [] if row is None else [row], "columns": [], "cells": []}}
+    else:
+        rows = list(sel.get("rows") or [])
+        row = int(rows[0]) if rows else None
+    st.session_state[f"_{key}_row"] = row
+    return row
