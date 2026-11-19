@@ -21,7 +21,7 @@ DB = ROOT / "data" / "db" / "bio_cdmo.sqlite"
 OUT = PROCESSED / "summary_cards.json"
 DART = "https://dart.fss.or.kr/dsaf001/main.do?rcpNo={}"
 N_EVIDENCE = 3            # 카드마다 붙이는 대표 기사 수
-BASIS = "AI 초안 · 팀 검토"  # 결론·카드 문구는 Claude 초안을 팀이 확인한 것
+BASIS = "AI 활용"  # 결론·카드 문구는 Claude 초안을 팀이 확인한 것 (배지 문구는 2026-11-19 "AI 활용"으로)
 
 # 카드 정의: 주제(이슈 묶음 이름)와 라벨로 기사를 고르고, 근거 공시는 접수번호로 직접 지정한다.
 # prefer 는 대표 기사를 고를 때 제목에 있으면 앞세우는 주제어 (정규식).

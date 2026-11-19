@@ -126,7 +126,7 @@ def _timeline(df: pd.DataFrame) -> None:
     n = st.session_state.get("s2_rows", PAGE)
     st.caption(f"{len(rows):,}건 중 {min(n, len(rows)):,}건 표시 · 최신순")
     for _, r in rows.head(n).iterrows():
-        with st.container(border=True):
+        with ui.card():
             _article_row(r)
     if n < len(rows):
         st.button("더 보기", key="s2_more", on_click=_more_rows)

@@ -2,7 +2,7 @@
 
 짜임새 (2026-11-18 개편, 레퍼런스 대시보드의 "큰 숫자 → 카드 → 차트 → 최근 목록" 순서):
   머리: 제목·필터 상태 | 공시 검색창(오른쪽)
-  ① 결론 한 줄 + 숫자 부제 (전문은 펼치기)
+  ① 결론 문장 "지금 CDMO 시장 현황은 '우호적'." + 기회·위험 동인 2줄 + 수치 상자 (2026-11-19 실무 표현으로 변경)
   ② 지표 4개 + 최근 3개월 증감
   ③ 월별 기회 vs 위험 차트 | ⑥ 공시에 물어보기 카드
   ④ 기회 요인 타일 / ⑤ 위험 요인 타일 (3열)
@@ -11,6 +11,7 @@
 필터는 카드를 거르고 지표·차트·표를 다시 센다 (U1 제안대로 — 팀 확인 전). 사용자 CSS 는 쓰지 않는다 (명세 2절).
 """
 import json
+import re
 from datetime import date
 
 import pandas as pd
@@ -28,6 +29,14 @@ SCREENS = {
     "linkage": (s5_linkage.render, "뉴스-공시 연계"), "qa": (s6_qa.render, "공시 Q&A"),
 }
 EXAMPLES = s6_qa.EXAMPLES
+# 요약 카드에 보일 짧은 이름 (S6 예시 질문 문구가 바뀌면 원래 질문이 그대로 보인다)
+EXAMPLE_LABELS = {
+    "삼성바이오로직스가 2026년 10월에 자율공시한 의약품 위탁생산계약의 계약금액과 계약기간 종료일은?":
+        "**삼성바이오로직스** 위탁생산계약 금액·종료일",
+    "바이넥스의 오송공장 신규시설투자 금액과 투자기간은?": "**바이넥스** 오송공장 투자 금액·기간",
+    "SK바이오사이언스의 RSV 예방항체 기술도입 계약의 상대방과 총 계약금액은?":
+        "**SK바이오사이언스** RSV 기술도입 상대방·금액",
+}
 WINDOW = pd.Timedelta(days=91)   # 증감 비교 구간: 최근 3개월 vs 직전 3개월
 LIMITS_S0 = [
     "결론과 카드는 전체 기간 데이터로 만든 고정 요약입니다. 사이드바 필터는 카드를 거르고 지표·차트·표를 다시 셀 뿐, 결론 문장을 다시 쓰지 않습니다.",
@@ -141,10 +150,12 @@ def _header(filters: dict) -> None:
         st.caption(f"현재 필터: {flt.status_line(filters)}")
     with right:
         with st.form("s0_qa_form", border=False):
-            c1, c2 = st.columns([4, 1.2], gap="small", vertical_alignment="bottom")
-            c1.text_input("공시에 물어보기", key="s0_question", placeholder="공시에 물어보기…",
-                          label_visibility="collapsed")
-            go_ = c2.form_submit_button("질문", type="primary", width="stretch", on_click=_ask_from_box)
+            # 열 비율로 나누면 좁은 창에서 버튼 칸이 20px 까지 줄어 "질문"이 잘린다 →
+            # 가로 컨테이너에 두고 버튼은 글자 폭(content)만큼 확보, 입력칸이 남은 폭을 쓴다
+            with st.container(horizontal=True, gap="small", vertical_alignment="bottom"):
+                st.text_input("공시에 물어보기", key="s0_question", placeholder="공시에 물어보기…",
+                              label_visibility="collapsed", width="stretch")
+                go_ = st.form_submit_button("질문", type="primary", width="content", on_click=_ask_from_box)
         if go_ and st.session_state.get("qa_pending"):
             st.switch_page(_page("qa"))
 
@@ -153,22 +164,35 @@ def _hero(summary: dict) -> None:
     counts = summary.get("label_counts", {})
     opp, risk = counts.get("기회", 0), counts.get("위험", 0)
     total = sum(counts.values())
-    ratio = round(opp / risk) if risk else None
-    lean = "기회 우위" if risk and opp >= 2 * risk else "위험 우위" if opp and risk >= 2 * opp else "기회·위험 혼재"
-    st.subheader(f"지금 CDMO 시장은 \"{lean}\"")
-    parts = [f"기회 기사가 위험의 {ratio}배" if ratio else None, f"기사 {total:,}건 분석",
-             f":gray-badge[{summary['basis']}]"]
-    st.markdown(" · ".join(p for p in parts if p))
-    with st.expander("결론 전문"):
-        st.markdown(summary["conclusion"])
-        st.caption("근거: 아래 기회·위험 요인의 기사·공시 링크 · 감성 라벨 전체 기사 기준")
+    # 결론 문장(판단 단어 강조) → 기회·위험 동인 목록 → 수치 상자(작은 글씨) → 출처.
+    # 판단 기준: 한쪽 기사가 다른 쪽의 2배 이상이면 그쪽으로 판단
+    if risk and opp >= 2 * risk:
+        kind, word, ratio = "good", ":blue[우호적]", f"기회 기사가 위험 기사의 {round(opp / risk)}배"
+    elif opp and risk >= 2 * opp:
+        kind, word, ratio = "bad", ":red[비우호적]", f"위험 기사가 기회 기사의 {round(risk / opp)}배"
+    else:
+        kind, word, ratio = "neutral", ":gray[중립]", "기회·위험 기사 차이 2배 미만"
+    conclusion = summary.get("conclusion", "")
+    period = conclusion.split(" CDMO 뉴스는")[0] if " CDMO 뉴스는" in conclusion else ""
+    m = re.search(r"기회는 (.+?)에 몰려 있고, 위험은 (.+?)에 집중됩니다", conclusion)
+    with st.container(key="s0_hero"):   # 결론 띠 — 진녹색 면 (core/style.py, DESIGN.md Feature Band)
+        with st.container(key=f"s0_verdict_{kind}"):   # 띠 위 판단 단어 색 (style.py)
+            st.title(f"지금 CDMO 시장 현황은 {word}", anchor=False)
+        if m:   # 긴 결론 문장을 기회·위험 두 줄로 나눠 항목만 남긴다 (글머리 없이, 기회·위험은 색으로 — style.py)
+            st.markdown(f'<span class="s0-opp">기회</span> {" · ".join(m.group(1).split(", "))}<br>'
+                        f'<span class="s0-risk">위험</span> {" · ".join(m.group(2).split(", "))}',
+                        unsafe_allow_html=True)
+        with st.container(border=True, key="s0_hero_stats"):   # 띠 안 수치 상자 (style.py 가 반투명 테두리로)
+            parts = [ratio, f"기회 {opp:,}건", f"위험 {risk:,}건", f"CDMO 뉴스 {total:,}건", period]
+            st.caption(" · ".join(p for p in parts if p))
+        st.caption(f"{summary['basis']} · 근거: 아래 기회·위험 요인의 기사·공시 링크 · 감성 라벨 전체 기사 기준")
 
 
 def _tile(card: dict) -> None:
     t = card["tags"]
     news = [e for e in card["evidence"] if e["kind"] == "기사"]
     discs = [e for e in card["evidence"] if e["kind"] == "공시"]
-    with st.container(border=True):
+    with ui.card():
         st.markdown(f"**{card['title']}**")
         st.caption(f"기사 {card['n_articles']:,}건 · {', '.join(t['companies']) or '산업 전체'} · "
                    f"{t['start'][:7]} ~ {t['end'][:7]}")
@@ -200,7 +224,7 @@ def _tiles(cards: list, kind: str) -> None:
 
 def _trend_chart(sent: pd.DataFrame, filters: dict) -> None:
     mode = theme.current_mode()
-    with st.container(border=True):
+    with ui.card():
         st.markdown("#### 월별 기회 vs 위험")
         if sent.empty:
             st.caption("현재 필터에 해당하는 기사가 없습니다")
@@ -226,12 +250,15 @@ def _trend_chart(sent: pd.DataFrame, filters: dict) -> None:
 
 
 def _qa_card() -> None:
-    with st.container(border=True):
+    with ui.card():
         st.markdown("#### 공시에 물어보기")
-        st.caption("5개사 공시 원문에서 근거를 찾아 답합니다. 근거가 없으면 답하지 않습니다.")
-        for i, q in enumerate(EXAMPLES):
-            if st.button(q, key=f"s0_example_{i}", width="stretch", on_click=_ask, args=(q,)):
-                st.switch_page(_page("qa"))
+        st.caption("5개사 공시 원문에서 근거를 찾아 답합니다. 근거가 없으면 답하지 않습니다. 예시를 누르면 바로 질문합니다.")
+        # 좁은 열이라 긴 질문 대신 "기업 + 묻는 것"만 보이고, 눌렀을 때는 원래 질문 전체를 보낸다 (마우스를 올리면 전체 질문)
+        with st.container(key="s0_examples", gap="small"):
+            for i, q in enumerate(EXAMPLES):
+                label = EXAMPLE_LABELS.get(q, q)
+                if st.button(label, key=f"s0_example_{i}", width="stretch", on_click=_ask, args=(q,), help=q):
+                    st.switch_page(_page("qa"))
 
 
 def _recent_disclosures(filters: dict, links: pd.DataFrame) -> None:
@@ -299,7 +326,7 @@ def render():
     with right:
         _qa_card()
     if not cards:
-        with st.container(border=True):
+        with ui.card():
             st.markdown("현재 필터에 해당하는 요약 없음")
             st.button("필터 초기화", key="empty_reset_S0_cards", on_click=flt.reset)
     else:
