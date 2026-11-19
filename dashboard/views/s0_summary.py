@@ -167,10 +167,11 @@ def _hero(summary: dict) -> None:
     m = re.search(r"기회는 (.+?)에 몰려 있고, 위험은 (.+?)에 집중됩니다", conclusion)
     with st.container(key="s0_hero"):   # 결론 띠 — 진녹색 면 (core/style.py, DESIGN.md Feature Band)
         with st.container(key=f"s0_verdict_{kind}"):   # 띠 위 판단 단어 색 (style.py)
-            st.title(f"지금 CDMO 시장 현황은 \"{word}\".", anchor=False)
-        if m:   # 긴 결론 문장을 기회·위험 두 줄로 나눠 항목만 남긴다
-            st.markdown(f"- **기회** {' · '.join(m.group(1).split(', '))}\n"
-                        f"- **위험** {' · '.join(m.group(2).split(', '))}")
+            st.title(f"지금 CDMO 시장 현황은 {word}", anchor=False)
+        if m:   # 긴 결론 문장을 기회·위험 두 줄로 나눠 항목만 남긴다 (글머리 없이, 기회·위험은 색으로 — style.py)
+            st.markdown(f'<span class="s0-opp">기회</span> {" · ".join(m.group(1).split(", "))}<br>'
+                        f'<span class="s0-risk">위험</span> {" · ".join(m.group(2).split(", "))}',
+                        unsafe_allow_html=True)
         with st.container(border=True, key="s0_hero_stats"):   # 띠 안 수치 상자 (style.py 가 반투명 테두리로)
             parts = [ratio, f"기회 {opp:,}건", f"위험 {risk:,}건", f"CDMO 뉴스 {total:,}건", period]
             st.caption(" · ".join(p for p in parts if p))

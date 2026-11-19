@@ -51,6 +51,9 @@ button[data-testid^="stBaseButton-primary"] {{ font-weight: 600; }}
 .st-key-s0_verdict_good .stMarkdownColoredText {{ color: #A9CDF5 !important; }}
 .st-key-s0_verdict_bad .stMarkdownColoredText {{ color: #F2A0A0 !important; }}
 .st-key-s0_verdict_neutral .stMarkdownColoredText {{ color: #D0DAD6 !important; }}
+/* 띠 안 기회·위험 줄 머리: 글머리 대신 색으로 구분 (판단 단어와 같은 밝은 파랑·빨강) */
+.st-key-s0_hero span.s0-opp {{ color: #A9CDF5; font-weight: 700; margin-right: 0.35rem; }}
+.st-key-s0_hero span.s0-risk {{ color: #F2A0A0; font-weight: 700; margin-right: 0.35rem; }}
 /* 띠 안 수치 상자: 반투명 테두리 */
 .st-key-s0_hero_stats {{ border-color: rgba(255,255,255,0.28) !important; background: rgba(255,255,255,0.05); }}
 </style>""")
