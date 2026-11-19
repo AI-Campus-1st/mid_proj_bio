@@ -341,6 +341,41 @@ def filter_links(filters: dict) -> pd.DataFrame:
     return df[keep]
 
 
+@st.cache_data(show_spinner=False)
+def match_targets() -> pd.DataFrame:
+    """M1 매칭 대상 = 기사 × 기업 1행 (analysis/match_news_disclosure.py 의 load() 와 같은 조건: 중복 제외,
+    기업명이 제목·본문). '연결 없는 기사 비율'의 분모 (미결 Q12 → 기사 × 기업 단위로 결정, 2026-11-19).
+    keywords 는 그 기사의 CDMO 키워드 목록 (없으면 빈 목록)."""
+    con = connect()
+    try:
+        df = pd.read_sql(
+            "SELECT n.news_id, n.url, n.published_date, c.corp_name FROM news n "
+            "JOIN news_companies nc ON nc.news_id = n.news_id JOIN companies c ON c.corp_code = nc.corp_code "
+            "WHERE n.dup_of IS NULL AND nc.match_field IN ('title', 'body')", con)
+    finally:
+        con.close()
+    kw = news_keywords().groupby("news_id").keyword.agg(set)
+    df["keywords"] = df.news_id.map(kw).map(lambda s: s if isinstance(s, set) else set())
+    # url 이 같은 기사가 둘 이상이면 매칭 결과(url 키)처럼 한 행으로 합친다
+    df = (df.groupby(["url", "corp_name"], sort=False)
+          .agg(published_date=("published_date", "first"), keywords=("keywords", lambda s: set().union(*s)))
+          .reset_index())
+    df["date"] = pd.to_datetime(df.published_date)
+    return df
+
+
+def filter_match_targets(filters: dict) -> pd.DataFrame:
+    """filter_links() 와 같은 규칙: 발행일이 기간 안, 선택 기업, 선택 키워드가 하나라도 있는 기사.
+    키워드 없는 기사(리스크 공시로만 연결될 수 있음)는 카테고리 6개 전체일 때만 넣는다."""
+    df = match_targets()
+    s, e = filters["period"]
+    df = df[(df.date >= pd.Timestamp(s)) & (df.date <= pd.Timestamp(e)) & df.corp_name.isin(filters["companies"])]
+    sel = set(filters["keywords"])
+    all_kw = len(sel) == len(KEYWORDS)
+    keep = df.keywords.map(lambda ks: bool(sel & ks) if ks else all_kw).astype(bool)
+    return df[keep]
+
+
 # ---------------------------------------------------------------- LLM 이슈 (S1 부상 이슈)
 
 ISSUES_PATH = PROCESSED / "issues_llm.csv"

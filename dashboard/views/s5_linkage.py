@@ -218,11 +218,22 @@ def render():
         ui.limits(LIMITS_S5)
         return
 
+    # 기사 × 기업 단위 (미결 Q12 결정, 2026-11-19): 여러 기업이 나온 기사는 기업마다 따로 센다
+    linked = links[["url", "corp_name"]].drop_duplicates()
+    try:
+        targets = data.filter_match_targets(filters)
+        n_target = len(targets)
+        n_linked = len(linked.merge(targets[["url", "corp_name"]], on=["url", "corp_name"]))
+        ratio = f"{(n_target - n_linked) / n_target:.1%}" if n_target else "–"
+        ratio_help = (f"매칭 대상 기사 × 기업 {n_target:,}건 중 공시와 연결되지 않은 {n_target - n_linked:,}건. "
+                      "대상은 중복 제외 기사 중 기업명이 제목·본문에 나온 것")
+    except Exception:   # DB가 없으면 분모를 못 구한다 — 앞 두 지표는 CSV만으로 보여 준다
+        ratio, ratio_help = "–", "매칭 대상 기사(분모)를 DB에서 읽지 못했습니다"
     ui.kpis([
-        {"label": "연결된 기사", "value": f"{links.url.nunique():,}건", "help": "공시와 하나 이상 연결된 기사 (고유 URL)"},
+        {"label": "연결된 기사", "value": f"{len(linked):,}건",
+         "help": "공시와 하나 이상 연결된 기사 × 기업 (여러 기업이 나온 기사는 기업마다 셈)"},
         {"label": "연결 공시", "value": f"{links.rcept_no.nunique():,}건", "help": "기사와 연결된 공시 (고유 접수번호)"},
-        {"label": "연결 없는 기사 비율", "value": "준비 중",
-         "help": "매칭 대상 기사 수(분모)가 결과 파일에 없어 계산 전입니다 (미결 Q12)"},
+        {"label": "연결 없는 기사 비율", "value": ratio, "help": ratio_help},
     ])
     st.divider()
     fkey = abs(hash((str(filters["period"]), tuple(filters["companies"]), tuple(filters["keywords"]))))

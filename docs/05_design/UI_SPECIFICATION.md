@@ -1,6 +1,6 @@
 # UI 명세
 
-> **상태:** 🔶 초안(2026-11-17) — 디자인 토큰·테마(라이트/다크), 공통 컴포넌트, 사이드바 필터, S0~S6 컴포넌트, 표시 규칙·안내 문구, AC 추적표 작성. [INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md) 8절 U1~U5는 "제안"대로 적고 해당 위치에 **팀 확인 전(U#)** 을 표시 · **최종 갱신:** 2026-11-19 (4-1·4-4절 기업·카테고리 필터를 체크박스 드롭다운으로)
+> **상태:** 🔶 초안(2026-11-17) — 디자인 토큰·테마(라이트/다크), 공통 컴포넌트, 사이드바 필터, S0~S6 컴포넌트, 표시 규칙·안내 문구, AC 추적표 작성. [INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md) 8절 U1~U5는 "제안"대로 적고 해당 위치에 **팀 확인 전(U#)** 을 표시 · **최종 갱신:** 2026-11-19 (4-1·4-4절 기업·카테고리 필터를 체크박스 드롭다운으로, 한국어 기간 빠른 선택 추가; 5-6절 S5-K 연결 없는 기사 비율 — Q12 기사 × 기업 단위로 해결)
 > **원본:** 없음 (새로 작성). 근거: [PRD](../02_product-requirements/PRD.md) 2·3·4·5절, [ACCEPTANCE_CRITERIA](../02_product-requirements/ACCEPTANCE_CRITERIA.md), [INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md), [WIREFRAME](WIREFRAME.md), [NEWS_DISCLOSURE_MATCHING](../04_ai/NEWS_DISCLOSURE_MATCHING.md) 3·4·5절, [AI_EVALUATION](../04_ai/AI_EVALUATION.md) 4·6절, [eda_report](../eda_report.md) 4·6·7절, `rag/qa.py`, 설치된 `streamlit==1.67.0`·`plotly==7.1.0`
 > **관련 문서:** [masterplan](../masterplan.md) · [INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md) · [WIREFRAME](WIREFRAME.md) · [PRD](../02_product-requirements/PRD.md) · [ACCEPTANCE_CRITERIA](../02_product-requirements/ACCEPTANCE_CRITERIA.md) · [TECH_STACK](../06_technical/TECH_STACK.md)
 
@@ -353,6 +353,7 @@ Q&A의 상태(입력 전·답변 생성 중·답변·거절·오류)는 5-7절�
 | 필터 | 위젯 | 위젯 key | 선택지 (값 그대로) | 기본값 | 검증 |
 |---|---|---|---|---|---|
 | 기간 | `st.date_input("기간", value=(2023-10-19, 2026-10-19), min_value=2023-10-19, max_value=2026-10-19, format="YYYY-MM-DD")` (범위 선택) | `flt_period` | 2023-10-19 ~ 2026-10-19 (DB `meta.period_start`·`period_end`) | 전체 기간 | 시작일만 고른 상태(값 1개)면 적용 값을 바꾸지 않고 `st.caption("종료일을 고르면 적용됩니다")` |
+| 기간 빠른 선택 | 기간 입력 바로 아래 `st.selectbox("기간 빠른 선택", options, label_visibility="collapsed")` | `flt_quick` | 전체 기간, 최근 1개월, 최근 3개월, 최근 6개월, 최근 1년, 최근 2년, 직접 지정. 종료일 = 데이터 마지막 날(`meta.period_end`), 시작일 = 종료일 − N개월(데이터 첫날보다 앞서지 않음). 예: 최근 1개월 = 2026-09-19 ~ 2026-10-19 | 전체 기간 | 적용 중인 기간이 어느 항목과도 같지 않으면 "직접 지정" 으로 보인다. "직접 지정" 을 고르면 아무것도 바꾸지 않는다 |
 | 기업 | 체크박스 드롭다운: `st.popover("기업 · <기업 요약>", width="stretch")` 안에 항목마다 `st.checkbox(항목)`. 버튼 문구의 요약은 4-5절 필터 상태 줄과 같다(`5개사 전체` / `삼성바이오로직스 외 3` / `기업 없음`) | 체크박스 `flt_co_0`~`flt_co_4` (선택 목록은 `flt_companies`) | 삼성바이오로직스, SK바이오사이언스, 프레스티지바이오로직스, 에스티팜, 바이넥스 (IA 4-1절 순서) | 5개사 전체 | 0개면 `st.warning("기업을 1개 이상 고르세요")`, 화면은 빈 결과 상태 |
 | 카테고리 | 체크박스 드롭다운: `st.popover("카테고리 · <카테고리 요약>", width="stretch")` 안에 항목마다 `st.checkbox(항목)`. 요약은 4-5절과 같다(`카테고리 6개 전체` / `규제·정책 외 4` / `카테고리 없음`) | 체크박스 `flt_kw_0`~`flt_kw_5` (선택 목록은 `flt_keywords`) | CDMO 규제·정책, CDMO 지정학, CDMO 모달리티, CDMO 생산능력, CDMO 수주, CDMO 경쟁 구도 | 6개 전체 | 0개면 `st.warning("카테고리를 1개 이상 고르세요")`, 화면은 빈 결과 상태 |
 | 초기화 | `st.button("필터 초기화", on_click=filters.reset, width="stretch")` | `flt_reset` | — | — | — |
@@ -362,6 +363,8 @@ Q&A의 상태(입력 전·답변 생성 중·답변·거절·오류)는 5-7절�
 - 기업·카테고리는 `st.multiselect` 대신 체크박스 드롭다운을 쓴다. 항목을 하나 고를 때마다 목록이 닫히지 않게 하기 위해서다(팝오버는 안의 체크박스로 다시 실행돼도 열린 채로 있다). 체크박스 `on_change` 콜백은 체크된 항목을 선택지 순서대로 모아 `filters["companies"]`·`flt_companies`(카테고리는 `filters["keywords"]`·`flt_keywords`)에 함께 넣는다.
 - 기업·카테고리의 기준값은 `filters` 이다. 체크박스 key(`flt_co_*`·`flt_kw_*`)는 매 실행 위젯을 그리기 전에 `filters` 에서 다시 채운다. 그래서 L1·L4 이동(4-4절)이나 초기화가 `filters` 를 바꾸면 체크 상태와 버튼 요약이 그대로 따라간다.
 - `filters.reset()` 은 `flt_period`·`flt_companies`·`flt_keywords` 와 `filters` 를 기본값으로 되돌리고(체크박스는 위 규칙대로 다음 실행에 전체 선택으로 그려진다) 화면별 상태 key(4-4절)는 지우지 않는다.
+- 기간 빠른 선택은 Streamlit 달력 아래 기본 빠른 선택('Date range': Past Month 등)을 대신한다. 기본 것은 영어로 고정돼 있고 **오늘부터** 거슬러 센 뒤 데이터 끝으로 잘라서, 예를 들어 Past Month가 2026-10-19 하루가 된다. 그래서 `app.py` 의 CSS(`[data-testid="stDateInputQuickSelect"] { display: none; }`)로 숨긴다. 같은 CSS가 달력 머리를 [연도][월] 순서로 보인다.
+- 빠른 선택 `on_change` 콜백은 `flt_period` 와 `filters["period"]` 를 함께 바꾼다. 표시값 `flt_quick` 은 매 실행 위젯을 그리기 전에 `filters["period"]` 에서 다시 정한다(체크박스와 같은 방식). 그래서 달력 직접 선택·L1·L4·초기화 뒤에도 맞게 보인다.
 - 위젯 아래 `st.caption("필터는 모든 차트에 적용됩니다. 화면별 적용 범위는 각 화면 상단을 보세요.")`.
 
 ### 4-2. 데이터에 적용하는 규칙
@@ -409,7 +412,7 @@ IA 5절 L1~L9의 구현. 필터를 바꾸는 이동은 위젯 key(`flt_*`)와 `f
 
 | key | 화면 | 값 |
 |---|---|---|
-| `filters`, `flt_period`, `flt_companies`, `flt_keywords`, `flt_co_0`~`flt_co_4`, `flt_kw_0`~`flt_kw_5` | 공통 | 4-1절 (체크박스 key는 `filters` 에서 매 실행 다시 채움) |
+| `filters`, `flt_period`, `flt_quick`, `flt_companies`, `flt_keywords`, `flt_co_0`~`flt_co_4`, `flt_kw_0`~`flt_kw_5` | 공통 | 4-1절 (빠른 선택·체크박스 key는 `filters` 에서 매 실행 다시 채움) |
 | `s1_unit`, `s1_series`, `s1_excl_team`, `s1_spike` | S1 | 단위(월/주), 계열(출처별/키워드별), 팀원수집 제외 여부, 선택한 급증 시점 |
 | `s2_label`, `s2_lang`, `s2_rows` | S2 | 라벨·언어 목록 필터, 표시 행 수 |
 | `s4_company`, `s4_rcept` | S4 | 타임라인 기업, 선택한 공시 `rcept_no` |
@@ -565,7 +568,7 @@ S2·S3·S4·S6처럼 화면이 범위를 바꾸면 같은 줄 끝에 ` · 이 �
 
 | ID | 요소 | 컴포넌트 | 입력 데이터 | 변환·집계 |
 |---|---|---|---|---|
-| S5-K | [연결된 기사 n] [연결 공시 n] [연결 없는 기사 비율 n%] | `ui.kpis` | `news_disclosure_links.csv` | 연결된 기사 = 필터 후 고유 `url` 수, 연결 공시 = 고유 `rcept_no` 수. 비율의 분모(매칭 대상 기사)는 CSV에 없음 (미결 Q12) |
+| S5-K | [연결된 기사 n] [연결 공시 n] [연결 없는 기사 비율 n%] | `ui.kpis` | `news_disclosure_links.csv` + 분모: DB `news` ⨝ `news_companies`(`match_field IN ('title','body')`) ⨝ `news_cdmo_keywords` (`data.filter_match_targets`) | 기사는 **기사 × 기업** 단위로 센다 (Q12 결정, 2026-11-19 — 여러 기업이 나온 기사는 기업마다 1건). 연결된 기사 = 필터 후 고유 (`url`, `corp_name`) 수, 연결 공시 = 고유 `rcept_no` 수, 비율 = 1 − 연결된 기사 ÷ 매칭 대상 기사 × 기업. 분모는 매칭 스크립트와 같은 조건(중복 제외, 기업명이 제목·본문)에 연결 표와 같은 필터 규칙(기간·기업, 선택 키워드 중 하나 이상, 키워드 없는 기사는 6개 전체일 때만). 기본 필터: 1,521 / 2,849 → 46.6% |
 | S5-C1 | 기업별 기사량(막대, 주별) + 공시 시점(▼) | `st.selectbox("기업", 선택 기업, key="s5_company")` + Plotly `make_subplots(rows=2, shared_xaxes=True, row_heights=[0.75, 0.25])` | 기사: DB `news` ⨝ `news_companies`(`match_field IN ('title','body')`) ⨝ `news_cdmo_keywords`(카테고리). 공시: DB `disclosures` | 위: 주별 기사 수. 아래: 공시 접수일 표식(주요 4분류 + 실적·임상·허가·기술계약·리스크, 정정 포함). WF S5(212행)·PRD F4·F5·NEWS_DISCLOSURE_MATCHING 18행은 `v_company_daily` 를 들지만 이 뷰는 `match_field` 를 거르지 않고(`query` 포함) 키워드 열도 없어 PRD 4절 R2와 카테고리 필터를 지킬 수 없다 (미결 Q2) |
 | S5-C2 | 이슈 ↔ 관련 공시 목록 | `st.columns([2, 3])`: 왼쪽 `st.dataframe(on_select="rerun", selection_mode="single-row")`, 오른쪽 공시 목록 | `news_disclosure_links.csv` (`url`, `published_date`, `corp_name`, `rcept_no`, `rcept_date`, `report_nm`, `window`, `day_gap`, `news_keyword`, `event_class`, `class_weight`, `is_amended`, `kw_low_confidence`, `follow_cut`) | 왼쪽: 임시 이슈 = `news_keyword`(`; ` 로 나눈 각 값) × `corp_name` × `published_date` 의 월, 열은 이슈 · 연결 기사 수 · 연결 공시 수, 정렬 연결 기사 수 내림차순. 오른쪽: 선택 이슈의 공시를 `rcept_no` 로 묶고 직접 → 후속, 그 안에서 `class_weight` 내림차순, `day_gap` 절댓값 오름차순 (NEWS_DISCLOSURE_MATCHING 3-5절) |
 
@@ -573,7 +576,7 @@ S2·S3·S4·S6처럼 화면이 범위를 바꾸면 같은 줄 끝에 ` · 이 �
 
 | ID | 표시·인코딩 | 상호작용 | 빈·대기 상태 | 연결 | P | 준비 |
 |---|---|---|---|---|---|---|
-| S5-K | 비율은 소수 1자리 % | — | 세 번째 지표 → `준비 중` (Q12) | (US-15) | P1 | 앞 둘 준비됨 |
+| S5-K | 비율은 소수 1자리 %. 비율 도움말에 분모·연결 없음 건수 | — | 분모 0건 → `–`. DB를 못 읽으면 비율만 `–` (앞 둘은 CSV로 표시) | (US-15) | P1 | 준비됨 (2026-11-19) |
 | S5-C1 | 위: 막대 `series-volume`, y = 기사 수. 아래: ▼ 표식(`triangle-down`, 10px), y = 분류 이름, 색 = 범주 슬롯(주요 4분류)·중립 회색(그 밖), 정정은 속 빈 표식. 두 칸이 x축(주)을 공유하는 한 차트 — 이중 y축은 쓰지 않음 | 호버: 위 = 주, 기사 수 / 아래 = 제출일, 공시명, 분류. ▼ 클릭 → 아래에 `ui.disclosure_line(ask_button=True)` | 기사·공시 모두 0건 → `ui.empty("기사/공시")` | (US-14) {AC-14} | P1 | 준비됨 (DB) |
 | S5-C2 왼쪽 | 이슈 표기 `CDMO 수주 · 에스티팜 · 2026-09` (WF 예시 형식). 표 위 caption "이슈 단위 집계 전이라 키워드 × 기업 × 월로 묶었습니다" | 행 선택 → `s5_issue`. L4로 들어오면 해당 이슈 선택 | 0건 → `ui.empty("기사/공시")` | (US-15) {AC-15} | P1 | 준비됨 |
 | S5-C2 오른쪽 | 행: 배지 `:blue-badge[직접]` 또는 `:gray-badge[후속 +N일]` · 제출일 · 공시명 · `[분류]` · `:gray-badge[정정]` · `[DART]` · [이 공시에 질문 →]. `kw_low_confidence=1` 이면 `:gray-badge[검색어 근거]`, `follow_cut=1` 이면 `:gray-badge[후속 확인 불가]`. 목록 아래 7-3절 안내 문구 2개 | DART 링크(새 탭), [이 공시에 질문 →] = L8 | 미선택 → caption "왼쪽에서 이슈를 고르면 관련 공시가 보입니다" | (US-15) {AC-15}, (US-16), N6 | P1 | 준비됨 — 7,135쌍, 표본 검수 전 |
@@ -869,7 +872,7 @@ S2·S3·S4·S6처럼 화면이 범위를 바꾸면 같은 줄 끝에 ` · 이 �
 | Q9 | 행사 주간 표기 기준이 산업 전체 급증 4건(eda_report 4-1절)에만 있다. 키워드·기업 급증의 행사 판정 기준 없음 | 산업 전체 4건만 `행사` 주석 |
 | Q10 | 5개사 표기 순서가 문서·코드마다 다르다(IA·PRD, `collect/config.py`·DB, `rag/qa.py`) | IA 4-1절 순서 |
 | Q11 | L8("이 공시에 질문")이 사이드바 필터를 바꿀지, S6 전용 범위만 바꿀지 (IA 5절은 "필터 값을 바꾼 뒤 이동"이라 적음) | S6 전용 범위(`qa_scope_override`)만 바꿈 |
-| Q12 | 연결된 기사 수가 CSV 고유 URL 기준 1,441건(`data/processed/news_disclosure_links.csv` 7,135행, 2026-11-17 집계), NEWS_DISCLOSURE_MATCHING 3-2절은 1,521건(53.4%)으로 다르다. "연결 없는 기사 비율"의 분모(매칭 대상 기사 2,849건)가 CSV에 없다 | 비율 지표 준비 중 |
+| Q12 | 연결된 기사 수가 CSV 고유 URL 기준 1,441건(`data/processed/news_disclosure_links.csv` 7,135행, 2026-11-17 집계), NEWS_DISCLOSURE_MATCHING 3-2절은 1,521건(53.4%)으로 다르다. "연결 없는 기사 비율"의 분모(매칭 대상 기사 2,849건)가 CSV에 없다 | **해결 (2026-11-19).** 두 수는 단위 차이였다: 매칭 스크립트 요약은 (url, 기업) 쌍, 화면은 고유 url로 셌다(2개 이상 기업과 연결된 기사 66건). **기사 × 기업 단위로 통일** — 연결 1,521 / 대상 2,849, 연결 없음 46.6%. 분모는 DB에서 필터를 적용해 계산 (5-6절 S5-K) |
 | Q13 | 감성 검수자 일치도 수치가 AI_EVALUATION과 `data/eval/sentiment_eval_result.md` 에서 다르다 | 화면에 일치도는 표시하지 않음 |
 | Q14 | 기회 파랑·위험 빨강이 한국 증시 관례(상승 빨강·하락 파랑)와 반대로 읽힐 수 있다 | 2-2절 색 + 라벨·기호 병기 |
 | Q15 | 실행 화면에서 확인할 것: `st.context.theme.type` 첫 접속 정확도, 라이트/다크 전환 메뉴 동작, `st.caption` 글자 대비, 마크다운 링크의 새 탭 열림, `border`(3:1 미달, 2-3절)만으로 입력 위젯 경계를 알아볼 수 있는지 | 구현 후 확인해 이 문서에 기록 |
