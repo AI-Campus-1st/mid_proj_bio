@@ -96,6 +96,7 @@ def _growth_kpi(g: dict) -> dict:
         return {"label": "최다 증가 모달리티", "value": "—", "help": f"{g['reason']}. {rule}"}
     t = g["top"]
     return {"label": "최다 증가 모달리티", "value": f"{t['모달리티']} +{int(t['증가 건수']):,}건",
+            "delta": f"{t['증가율']} ({int(t['직전 3개월']):,} → {int(t['최근 3개월']):,}건)",
             "help": f"{int(t['직전 3개월']):,}건 → {int(t['최근 3개월']):,}건 ({t['증가율']}). {span}. {rule}"}
 
 
@@ -114,17 +115,18 @@ def _trend_chart(table: pd.DataFrame, key: str) -> None:
     t = theme.TOKENS[theme.current_mode()]
     mods = list(table.columns)
     rows = math.ceil(len(mods) / 4)
-    fig = make_subplots(rows=rows, cols=4, shared_yaxes="all", shared_xaxes=True,
-                        subplot_titles=[f"{m} ({int(table[m].sum()):,})" for m in mods], vertical_spacing=0.14)
+    fig = make_subplots(rows=rows, cols=4, shared_yaxes="all", shared_xaxes="all",
+                        subplot_titles=[f"{m} ({int(table[m].sum()):,})" for m in mods], vertical_spacing=0.22)
     for i, m in enumerate(mods):
         fig.add_trace(go.Scatter(x=table.index, y=table[m], mode="lines", name=m,
                                  line=dict(width=2, color=t["series-volume"]),
                                  hovertemplate=f"{m}<br>%{{x|%Y-%m}} · %{{y:,}}건<extra></extra>"),
                       row=i // 4 + 1, col=i % 4 + 1)
-    theme.style(fig, "bar", height=theme.HEIGHT["small"] * rows + 40)
+    theme.style(fig, "bar", height=(theme.HEIGHT["small"] + 30) * rows + 40)
     fig.update_layout(showlegend=False, hovermode="closest", margin=dict(l=8, r=8, t=28, b=8))
     fig.update_annotations(font=dict(size=12, color=t["text"]))
-    fig.update_xaxes(tickformat="%Y-%m")
+    # 모든 칸에 기간 눈금을 보인다
+    fig.update_xaxes(tickformat="%Y-%m", showticklabels=True, nticks=4, tickangle=0)
     theme.show(fig, key=key, alt="모달리티별 월 기사 수 (LLM 태그, 괄호는 기간 합계)")
 
 
