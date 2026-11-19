@@ -2,7 +2,7 @@
 
 짜임새 (2026-11-18 개편, 레퍼런스 대시보드의 "큰 숫자 → 카드 → 차트 → 최근 목록" 순서):
   머리: 제목·필터 상태 | 공시 검색창(오른쪽)
-  ① 결론 한 줄 + 숫자 부제 (전문은 펼치기)
+  ① 결론 문장 "지금 CDMO 시장 현황은 '우호적'." + 기회·위험 동인 2줄 + 수치 상자 (2026-11-19 실무 표현으로 변경)
   ② 지표 4개 + 최근 3개월 증감
   ③ 월별 기회 vs 위험 차트 | ⑥ 공시에 물어보기 카드
   ④ 기회 요인 타일 / ⑤ 위험 요인 타일 (3열)
@@ -11,6 +11,7 @@
 필터는 카드를 거르고 지표·차트·표를 다시 센다 (U1 제안대로 — 팀 확인 전). 사용자 CSS 는 쓰지 않는다 (명세 2절).
 """
 import json
+import re
 from datetime import date
 
 import pandas as pd
@@ -153,15 +154,25 @@ def _hero(summary: dict) -> None:
     counts = summary.get("label_counts", {})
     opp, risk = counts.get("기회", 0), counts.get("위험", 0)
     total = sum(counts.values())
-    ratio = round(opp / risk) if risk else None
-    lean = "기회 우위" if risk and opp >= 2 * risk else "위험 우위" if opp and risk >= 2 * opp else "기회·위험 혼재"
-    st.subheader(f"지금 CDMO 시장은 \"{lean}\"")
-    parts = [f"기회 기사가 위험의 {ratio}배" if ratio else None, f"기사 {total:,}건 분석",
-             f":gray-badge[{summary['basis']}]"]
-    st.markdown(" · ".join(p for p in parts if p))
-    with st.expander("결론 전문"):
-        st.markdown(summary["conclusion"])
-        st.caption("근거: 아래 기회·위험 요인의 기사·공시 링크 · 감성 라벨 전체 기사 기준")
+    # 결론 문장(판단 단어 강조) → 기회·위험 동인 목록 → 수치 상자(작은 글씨) → 출처.
+    # 판단 기준: 한쪽 기사가 다른 쪽의 2배 이상이면 그쪽으로 판단
+    if risk and opp >= 2 * risk:
+        word, ratio = ":blue[우호적]", f"기회 기사가 위험 기사의 {round(opp / risk)}배"
+    elif opp and risk >= 2 * opp:
+        word, ratio = ":red[비우호적]", f"위험 기사가 기회 기사의 {round(risk / opp)}배"
+    else:
+        word, ratio = ":gray[중립]", "기회·위험 기사 차이 2배 미만"
+    conclusion = summary.get("conclusion", "")
+    period = conclusion.split(" CDMO 뉴스는")[0] if " CDMO 뉴스는" in conclusion else ""
+    m = re.search(r"기회는 (.+?)에 몰려 있고, 위험은 (.+?)에 집중됩니다", conclusion)
+    st.title(f"지금 CDMO 시장 현황은 \"{word}\".", anchor=False)
+    if m:   # 긴 결론 문장을 기회·위험 두 줄로 나눠 항목만 남긴다
+        st.markdown(f"- **기회** {' · '.join(m.group(1).split(', '))}\n"
+                    f"- **위험** {' · '.join(m.group(2).split(', '))}")
+    with st.container(border=True):
+        parts = [ratio, f"기회 {opp:,}건", f"위험 {risk:,}건", f"CDMO 뉴스 {total:,}건", period]
+        st.caption(" · ".join(p for p in parts if p))
+    st.caption(f":gray-badge[{summary['basis']}] 근거: 아래 기회·위험 요인의 기사·공시 링크 · 감성 라벨 전체 기사 기준")
 
 
 def _tile(card: dict) -> None:
