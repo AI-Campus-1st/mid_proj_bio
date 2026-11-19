@@ -1,0 +1,12 @@
+# 데이터 이미지(Dockerfile.data) 빌드 맥락 — 허용 목록 방식 (BuildKit 이 Dockerfile 이름에 맞춰 이 파일을 읽는다).
+*
+
+!data/db/bio_cdmo.sqlite
+!data/processed/eda_spikes.csv
+!data/processed/issues_llm.csv
+!data/processed/modality_llm.csv
+!data/processed/news_disclosure_links.csv
+!data/processed/sentiment_llm.csv
+!data/processed/summary_cards.json
+!data/processed/title_ko.csv
+!chroma_db/

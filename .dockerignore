@@ -1,0 +1,24 @@
+# 앱 이미지(Dockerfile) 빌드 맥락 — 허용 목록 방식. 여기 적은 것만 빌드에 들어간다.
+# .env · .venv · 원천 데이터(뉴스·DART) · DB · 색인 · 팀원 기록은 들어가지 않는다.
+# 데이터 이미지(Dockerfile.data)는 Dockerfile.data.dockerignore 를 쓴다.
+*
+
+!requirements-app.txt
+!.streamlit/config.toml
+!collect/config.py
+!rag/build_index.py
+!rag/qa.py
+!dashboard/
+!data/processed/
+
+# 기사 URL·제목이 들어 있는 산출물은 저장소가 아니라 데이터 이미지에서 가져온다
+data/processed/eda_spikes.csv
+data/processed/issues_llm.csv
+data/processed/modality_llm.csv
+data/processed/news_disclosure_links.csv
+data/processed/sentiment_llm.csv
+data/processed/summary_cards.json
+data/processed/title_ko.csv
+
+**/__pycache__
+**/*.py[cod]

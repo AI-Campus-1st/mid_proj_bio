@@ -1,0 +1,27 @@
+# syntax=docker/dockerfile:1
+# 비공개 데이터 이미지 — ghcr.io/ai-campus-1st/mid_proj_bio-data (비공개 패키지)
+#
+# 실행 파일 없이 데이터만 담는다. 앱 이미지(Dockerfile)가 빌드할 때 COPY --from 으로 가져간다.
+# CI 는 원천 데이터를 가지고 있지 않으므로 데이터를 가진 팀원이 로컬에서 빌드해 올린다.
+# 데이터(DB · 색인 · 아래 산출물)가 바뀌면 다시 빌드해 올리고, 앱 배포를 다시 실행한다.
+# 빌드 맥락은 Dockerfile.data.dockerignore 의 허용 목록으로 제한한다. 순서: docs/06_technical/DEPLOYMENT.md
+
+FROM scratch
+LABEL org.opencontainers.image.source="https://github.com/AI-Campus-1st/mid_proj_bio" \
+      org.opencontainers.image.description="Private data for the bio CDMO dashboard (DB, RAG index, article-level outputs)"
+
+# 통합 DB (python db/build_db.py)
+COPY data/db/bio_cdmo.sqlite /data/db/bio_cdmo.sqlite
+
+# 기사 URL·제목이 들어 있는 분석 산출물 (대시보드가 읽는 것)
+COPY data/processed/eda_spikes.csv \
+     data/processed/issues_llm.csv \
+     data/processed/modality_llm.csv \
+     data/processed/news_disclosure_links.csv \
+     data/processed/sentiment_llm.csv \
+     data/processed/summary_cards.json \
+     data/processed/title_ko.csv \
+     /data/processed/
+
+# 공시 RAG 색인 (python rag/build_index.py)
+COPY chroma_db/ /chroma_db/
