@@ -251,7 +251,7 @@ def render():
     head, ctl = st.columns([3, 2], vertical_alignment="bottom")
     head.markdown("#### 기업 × 모달리티")
     view = ctl.segmented_control("값", ["기사 수", "기업 내 비율"], key="s3_heat_value", default="기사 수",
-                                 required=True)
+                                 required=True, label_visibility="collapsed")
     matrix = _company_matrix(tagged, filters["companies"])
     if matrix.to_numpy().sum() == 0:
         ui.empty("기사", "S3-C2")
