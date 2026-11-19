@@ -7,10 +7,25 @@ import streamlit as st
 from core import filters
 from views import s0_summary, s1_trend, s2_policy, s3_tech, s4_compare, s5_linkage, s6_qa
 
-st.set_page_config(page_title="CDMO 이슈 대시보드", layout="wide", initial_sidebar_state="expanded")
+APP_TITLE = "CDMO 이슈 대시보드"
+
+st.set_page_config(page_title=APP_TITLE, layout="wide", initial_sidebar_state="expanded")
+
+# 메뉴(st.navigation)는 사이드바 내용보다 위에 그려지므로, 제목은 CSS로 메뉴 위에 붙인다(명세 3-1절 "사이드바 맨 위 문구")
+st.html(f"""<style>
+[data-testid="stSidebarNav"]::before {{
+  content: "{APP_TITLE}";
+  display: block;
+  padding: 0 0 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--st-text-color, inherit);
+}}
+</style>""")
 
 with st.sidebar:
-    st.markdown("### CDMO 이슈 대시보드")
+    st.markdown("### 필터")
     filters.render_sidebar()
 
 # 화면 함수 이름이 모두 render 라 url_path 를 직접 준다
