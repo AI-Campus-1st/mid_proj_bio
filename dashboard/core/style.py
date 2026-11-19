@@ -54,6 +54,12 @@ button[data-testid^="stBaseButton-primary"] {{ font-weight: 600; }}
 /* 띠 안 기회·위험 줄 머리: 글머리 대신 색으로 구분 (판단 단어와 같은 밝은 파랑·빨강) */
 .st-key-s0_hero span.s0-opp {{ color: #A9CDF5; font-weight: 700; margin-right: 0.35rem; }}
 .st-key-s0_hero span.s0-risk {{ color: #F2A0A0; font-weight: 700; margin-right: 0.35rem; }}
+/* S0 공시에 물어보기 예시: 왼쪽 정렬, 조금 작은 글씨 (짧은 이름 + 마우스 올리면 전체 질문) */
+.st-key-s0_examples button {{ justify-content: flex-start; text-align: left; padding: 0.5rem 0.875rem; border-radius: 12px; }}
+.st-key-s0_examples button div, .st-key-s0_examples button span,
+.st-key-s0_examples button p {{ width: 100%; text-align: left; justify-content: flex-start; }}
+.st-key-s0_examples button p {{ font-size: 0.875rem; line-height: 1.35; word-break: keep-all; }}
+.st-key-s0_examples button strong {{ display: block; }}   /* 기업명 한 줄, 묻는 것 한 줄 */
 /* 띠 안 수치 상자: 반투명 테두리 */
 .st-key-s0_hero_stats {{ border-color: rgba(255,255,255,0.28) !important; background: rgba(255,255,255,0.05); }}
 </style>""")

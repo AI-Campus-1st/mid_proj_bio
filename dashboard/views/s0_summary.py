@@ -29,6 +29,14 @@ SCREENS = {
     "linkage": (s5_linkage.render, "뉴스-공시 연계"), "qa": (s6_qa.render, "공시 Q&A"),
 }
 EXAMPLES = s6_qa.EXAMPLES
+# 요약 카드에 보일 짧은 이름 (S6 예시 질문 문구가 바뀌면 원래 질문이 그대로 보인다)
+EXAMPLE_LABELS = {
+    "삼성바이오로직스가 2026년 10월에 자율공시한 의약품 위탁생산계약의 계약금액과 계약기간 종료일은?":
+        "**삼성바이오로직스** 위탁생산계약 금액·종료일",
+    "바이넥스의 오송공장 신규시설투자 금액과 투자기간은?": "**바이넥스** 오송공장 투자 금액·기간",
+    "SK바이오사이언스의 RSV 예방항체 기술도입 계약의 상대방과 총 계약금액은?":
+        "**SK바이오사이언스** RSV 기술도입 상대방·금액",
+}
 WINDOW = pd.Timedelta(days=91)   # 증감 비교 구간: 최근 3개월 vs 직전 3개월
 LIMITS_S0 = [
     "결론과 카드는 전체 기간 데이터로 만든 고정 요약입니다. 사이드바 필터는 카드를 거르고 지표·차트·표를 다시 셀 뿐, 결론 문장을 다시 쓰지 않습니다.",
@@ -242,10 +250,13 @@ def _trend_chart(sent: pd.DataFrame, filters: dict) -> None:
 def _qa_card() -> None:
     with ui.card():
         st.markdown("#### 공시에 물어보기")
-        st.caption("5개사 공시 원문에서 근거를 찾아 답합니다. 근거가 없으면 답하지 않습니다.")
-        for i, q in enumerate(EXAMPLES):
-            if st.button(q, key=f"s0_example_{i}", width="stretch", on_click=_ask, args=(q,)):
-                st.switch_page(_page("qa"))
+        st.caption("5개사 공시 원문에서 근거를 찾아 답합니다. 근거가 없으면 답하지 않습니다. 예시를 누르면 바로 질문합니다.")
+        # 좁은 열이라 긴 질문 대신 "기업 + 묻는 것"만 보이고, 눌렀을 때는 원래 질문 전체를 보낸다 (마우스를 올리면 전체 질문)
+        with st.container(key="s0_examples", gap="small"):
+            for i, q in enumerate(EXAMPLES):
+                label = EXAMPLE_LABELS.get(q, q)
+                if st.button(label, key=f"s0_example_{i}", width="stretch", on_click=_ask, args=(q,), help=q):
+                    st.switch_page(_page("qa"))
 
 
 def _recent_disclosures(filters: dict, links: pd.DataFrame) -> None:
