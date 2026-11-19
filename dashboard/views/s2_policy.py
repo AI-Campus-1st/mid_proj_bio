@@ -168,9 +168,5 @@ def render():
     _timeline(df)
 
     st.markdown("#### 언급 기업")
-    left, right = st.columns([3, 2], gap="medium")
-    with left:
-        _company_chart(df, key=f"s2_corp_{fkey}")
-    with right:
-        ui.pending("해외 CDMO 언급 수", "해외 CDMO 언급 집계 기준 정의")
+    _company_chart(df, key=f"s2_corp_{fkey}")   # 5개사만 (해외 CDMO 언급 수는 집계 기준이 없어 2026-11-19 뺌, 미결 Q7 종료)
     ui.limits(LIMITS_S2)

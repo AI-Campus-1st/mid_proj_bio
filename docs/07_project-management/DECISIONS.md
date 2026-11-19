@@ -1,6 +1,6 @@
 # 주요 결정 기록
 
-> **상태:** 작성 완료 — 2026-11-13 ~ 11-19의 주요 결정 37건 (범위·데이터·분류·AI·RAG·매칭·대시보드·협업) · **최종 갱신:** 2026-11-19
+> **상태:** 작성 완료 — 2026-11-13 ~ 11-19의 주요 결정 38건 (범위·데이터·분류·AI·RAG·매칭·대시보드·협업) · **최종 갱신:** 2026-11-19
 > **원본:** 팀원 기록 파일(`kevin110419.md`, `hanju.md`, `10010197.md`), git 기록, [DART_DATA_SPEC](../03_data/DART_DATA_SPEC.md) 1절(구 `company_selection.md`), [NEWS_DATA_SPEC](../03_data/NEWS_DATA_SPEC.md)·[NEWS_CLASSIFICATION](../03_data/NEWS_CLASSIFICATION.md)(구 `news_sort.md`), [DATABASE_SCHEMA](../06_technical/DATABASE_SCHEMA.md) 3절, [AI_CLASSIFICATION](../04_ai/AI_CLASSIFICATION.md) 변경 기록, [NEWS_DISCLOSURE_MATCHING](../04_ai/NEWS_DISCLOSURE_MATCHING.md) 7절(D1~D10), [AI_EVALUATION](../04_ai/AI_EVALUATION.md) 7-1절, [UI_SPECIFICATION](../05_design/UI_SPECIFICATION.md) 10절
 > **관련 문서:** [masterplan](../masterplan.md) · [MILESTONES](MILESTONES.md) · [TASKS](TASKS.md)
 
@@ -69,6 +69,7 @@
 | D-32 | 11-18 | **출처별 기사량 차트에는 그 계열의 급증만 표시** | 명세대로 67건을 모두 찍으면 거의 매달 ●이 붙어 읽히지 않는다 | 명세 그대로 | 5개사 전체면 산업 전체 6건, 일부면 그 기업들. 급증 표에는 전부 | 확정 |
 | D-33 | 11-18 | **"AI 생성" 배지 범위** | 화면마다 달라짐 — S2 판단 이유·S6 답변은 있음, S3은 제거, S0은 "AI 활용"(11-19, 처음엔 "AI 초안 · 팀 검토") | 전 화면 통일 | 디자인 단계에서 통일 필요 | 팀 확인 전 |
 | D-37 | 11-19 | **S5 연결 지표는 기사 × 기업 단위로 센다** (UI_SPECIFICATION 미결 Q12) | 매칭 문서(1,521건)와 화면(고유 url 1,441건)이 단위가 달라 숫자가 어긋났다. 매칭은 기사 × 기업 × 공시로 만들어지므로 같은 단위가 매칭 문서·스크립트 요약과 맞는다 | 고유 기사(url) 단위 — 대상 2,725, 연결 1,441, 연결 없음 47.1% | 연결된 기사 1,521, 연결 없는 기사 비율 46.6%(대상 2,849). 분모는 DB에서 필터를 적용해 계산 | 확정 |
+| D-38 | 11-19 | **S2 "해외 CDMO 언급 수" 차트를 뺀다** (UI_SPECIFICATION 미결 Q7) | 해외 CDMO를 셀 데이터 정의(대상 기업 목록·영문 표기)가 없어 "준비 중"으로만 남아 있었다 | 기준을 새로 정의해 집계 | 언급 기업은 5개사 막대만, 본문 전체 폭. 남은 "준비 중" 항목 없음 | 확정 |
 
 ## 6. 협업과 문서
 
@@ -83,7 +84,6 @@
 | 항목 | 현재 임시 동작 | 관련 문서 |
 |---|---|---|
 | UI 명세 U1~U5 | 제안대로 구현 (D-31) | UI_SPECIFICATION 10-1절 |
-| 해외 CDMO 언급 집계 기준 (Q7) | S2 "준비 중" | 같음 |
 | "AI 생성" 배지 범위 (D-33) | 화면마다 다름 (S0은 11-19 "AI 활용") | — |
 | `requirements.txt` 의 쓰지 않는 패키지 정리 | 그대로 | [TECH_STACK](../06_technical/TECH_STACK.md) 3절 |
 | 원본 문서(`data_schema.md`·`news_sort.md`·`company_selection.md`) 삭제와 링크 교체 | 남겨 둠 | masterplan 5절 |

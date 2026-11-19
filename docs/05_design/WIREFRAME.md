@@ -1,6 +1,6 @@
 # 와이어프레임
 
-> **상태:** 초안 → 2026-11-19 main 구현에 맞춰 갱신 — 화면 S0~S6 배치와 공통 상태(빈 상태·로딩·거절). 위젯 세부 동작·색상은 [UI_SPECIFICATION](UI_SPECIFICATION.md) · **최종 갱신:** 2026-11-19 (S0 결론 띠·지표·Q&A 카드·최근 공시로 다시 그림, S1 부상 이슈·토글 삭제, S2 번역, S3 모달리티 태그·히트맵, S4 금액, S5 연결 지표, S6 예시 질문·근거 없음 표시를 구현대로; ⏳ 는 S2 해외 CDMO 언급 수만 남음)
+> **상태:** 초안 → 2026-11-19 main 구현에 맞춰 갱신 — 화면 S0~S6 배치와 공통 상태(빈 상태·로딩·거절). 위젯 세부 동작·색상은 [UI_SPECIFICATION](UI_SPECIFICATION.md) · **최종 갱신:** 2026-11-19 (S0 결론 띠·지표·Q&A 카드·최근 공시로 다시 그림, S1 부상 이슈·토글 삭제, S2 번역, S3 모달리티 태그·히트맵, S4 금액, S5 연결 지표, S6 예시 질문·근거 없음 표시를 구현대로; ⏳ 없음 — S2 해외 CDMO 언급 수는 11-19 삭제)
 > **원본:** 없음 (새로 작성). 근거: [PRD](../02_product-requirements/PRD.md) 2절 각 기능의 "화면 구성", [ACCEPTANCE_CRITERIA](../02_product-requirements/ACCEPTANCE_CRITERIA.md), [NEWS_DISCLOSURE_MATCHING](../04_ai/NEWS_DISCLOSURE_MATCHING.md) 4·5절
 > **관련 문서:** [masterplan](../masterplan.md) · [INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md) · [UI_SPECIFICATION](UI_SPECIFICATION.md)
 
@@ -10,7 +10,7 @@
 
 - 저해상도 배치도이다. 상자 크기는 비율만 뜻한다.
 - `[F#]` 는 기능, `(US-##)` 는 스토리, `{AC-##}` 는 검수 기준이다.
-- `⏳` 표시 요소는 데이터가 아직 없다 ([INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md) 7절). 데이터가 오기 전에는 4-1절의 "준비 중" 상태로 보여 준다. 2026-11-19 기준 남은 ⏳ 는 S2 "해외 CDMO 언급 수" 하나다.
+- `⏳` 표시 요소는 데이터가 아직 없다 ([INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md) 7절). 데이터가 오기 전에는 4-1절의 "준비 중" 상태로 보여 준다. 2026-11-19 기준 남은 ⏳ 는 없다 (S2 "해외 CDMO 언급 수"는 화면에서 뺐다).
 - 화면 ID(S0~S6)와 필터 적용 범위는 INFORMATION_ARCHITECTURE 2·4절을 따른다.
 
 ## 2. 공통 틀
@@ -140,7 +140,7 @@
 │            └ 판단 이유 (펼치기)                       {AC-07,08}   │
 │ …                                       [더 보기]                 │
 ├──────────────────────────────────────────────────────────────────┤
-│ 언급 기업 막대 (5개사)        │ ⏳ 해외 CDMO 언급 수 (준비 중)      │
+│ 언급 기업 막대 (5개사, 전체 폭)                                   │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -286,7 +286,7 @@
 
 ## 5. 구현 순서 제안
 
-데이터 준비 상태(INFORMATION_ARCHITECTURE 7절)에 맞춘다. **2026-11-19 기준 1~5 모두 구현됨** (남은 것은 S2 해외 CDMO 언급 수).
+데이터 준비 상태(INFORMATION_ARCHITECTURE 7절)에 맞춘다. **2026-11-19 기준 1~5 모두 구현됨** (S2 해외 CDMO 언급 수는 구현하지 않고 뺌).
 
 1. 공통 틀: 사이드바 메뉴·필터(F7), 필터 상태 줄, ④ 한계 영역, 4-1절 상태
 2. S1(기사량·급증 시점), S4(공시 집계·타임라인) — 데이터 준비됨
