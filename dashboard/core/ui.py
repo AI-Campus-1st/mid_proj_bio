@@ -34,8 +34,8 @@ def kpis(items: list) -> None:
     """
     cols = st.columns(len(items), gap="small")
     for col, it in zip(cols, items):
-        col.metric(it["label"], it.get("value") or "—", help=it.get("help"), border=True,
-                   delta=it.get("delta"), delta_color=it.get("delta_color", "normal"))
+        col.metric(it["label"], it.get("value") or "—", help=it.get("help"), border=True, height="stretch",
+                   delta=it.get("delta"), delta_color=it.get("delta_color", "normal"))   # 증감 줄 유무와 상관없이 카드 높이 같게
 
 
 def conclusion(text: str, evidence: list) -> None:
