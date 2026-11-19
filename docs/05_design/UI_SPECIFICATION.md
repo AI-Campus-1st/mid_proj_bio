@@ -1,6 +1,6 @@
 # UI 명세
 
-> **상태:** 🔶 초안(2026-11-17) — 디자인 토큰·테마(라이트/다크), 공통 컴포넌트, 사이드바 필터, S0~S6 컴포넌트, 표시 규칙·안내 문구, AC 추적표 작성. [INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md) 8절 U1~U5는 "제안"대로 적고 해당 위치에 **팀 확인 전(U#)** 을 표시 · **최종 갱신:** 2026-11-17
+> **상태:** 🔶 초안(2026-11-17) — 디자인 토큰·테마(라이트/다크), 공통 컴포넌트, 사이드바 필터, S0~S6 컴포넌트, 표시 규칙·안내 문구, AC 추적표 작성. [INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md) 8절 U1~U5는 "제안"대로 적고 해당 위치에 **팀 확인 전(U#)** 을 표시 · **최종 갱신:** 2026-11-19 (4-1·4-4절 기업·카테고리 필터를 체크박스 드롭다운으로)
 > **원본:** 없음 (새로 작성). 근거: [PRD](../02_product-requirements/PRD.md) 2·3·4·5절, [ACCEPTANCE_CRITERIA](../02_product-requirements/ACCEPTANCE_CRITERIA.md), [INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md), [WIREFRAME](WIREFRAME.md), [NEWS_DISCLOSURE_MATCHING](../04_ai/NEWS_DISCLOSURE_MATCHING.md) 3·4·5절, [AI_EVALUATION](../04_ai/AI_EVALUATION.md) 4·6절, [eda_report](../eda_report.md) 4·6·7절, `rag/qa.py`, 설치된 `streamlit==1.67.0`·`plotly==7.1.0`
 > **관련 문서:** [masterplan](../masterplan.md) · [INFORMATION_ARCHITECTURE](INFORMATION_ARCHITECTURE.md) · [WIREFRAME](WIREFRAME.md) · [PRD](../02_product-requirements/PRD.md) · [ACCEPTANCE_CRITERIA](../02_product-requirements/ACCEPTANCE_CRITERIA.md) · [TECH_STACK](../06_technical/TECH_STACK.md)
 
@@ -353,13 +353,15 @@ Q&A의 상태(입력 전·답변 생성 중·답변·거절·오류)는 5-7절�
 | 필터 | 위젯 | 위젯 key | 선택지 (값 그대로) | 기본값 | 검증 |
 |---|---|---|---|---|---|
 | 기간 | `st.date_input("기간", value=(2023-10-19, 2026-10-19), min_value=2023-10-19, max_value=2026-10-19, format="YYYY-MM-DD")` (범위 선택) | `flt_period` | 2023-10-19 ~ 2026-10-19 (DB `meta.period_start`·`period_end`) | 전체 기간 | 시작일만 고른 상태(값 1개)면 적용 값을 바꾸지 않고 `st.caption("종료일을 고르면 적용됩니다")` |
-| 기업 | `st.multiselect("기업", options, default=options)` | `flt_companies` | 삼성바이오로직스, SK바이오사이언스, 프레스티지바이오로직스, 에스티팜, 바이넥스 (IA 4-1절 순서) | 5개사 전체 | 0개면 `st.warning("기업을 1개 이상 고르세요")`, 화면은 빈 결과 상태 |
-| 카테고리 | `st.multiselect("카테고리", options, default=options)` | `flt_keywords` | CDMO 규제·정책, CDMO 지정학, CDMO 모달리티, CDMO 생산능력, CDMO 수주, CDMO 경쟁 구도 | 6개 전체 | 0개면 `st.warning("카테고리를 1개 이상 고르세요")`, 화면은 빈 결과 상태 |
+| 기업 | 체크박스 드롭다운: `st.popover("기업 · <기업 요약>", width="stretch")` 안에 항목마다 `st.checkbox(항목)`. 버튼 문구의 요약은 4-5절 필터 상태 줄과 같다(`5개사 전체` / `삼성바이오로직스 외 3` / `기업 없음`) | 체크박스 `flt_co_0`~`flt_co_4` (선택 목록은 `flt_companies`) | 삼성바이오로직스, SK바이오사이언스, 프레스티지바이오로직스, 에스티팜, 바이넥스 (IA 4-1절 순서) | 5개사 전체 | 0개면 `st.warning("기업을 1개 이상 고르세요")`, 화면은 빈 결과 상태 |
+| 카테고리 | 체크박스 드롭다운: `st.popover("카테고리 · <카테고리 요약>", width="stretch")` 안에 항목마다 `st.checkbox(항목)`. 요약은 4-5절과 같다(`카테고리 6개 전체` / `규제·정책 외 4` / `카테고리 없음`) | 체크박스 `flt_kw_0`~`flt_kw_5` (선택 목록은 `flt_keywords`) | CDMO 규제·정책, CDMO 지정학, CDMO 모달리티, CDMO 생산능력, CDMO 수주, CDMO 경쟁 구도 | 6개 전체 | 0개면 `st.warning("카테고리를 1개 이상 고르세요")`, 화면은 빈 결과 상태 |
 | 초기화 | `st.button("필터 초기화", on_click=filters.reset, width="stretch")` | `flt_reset` | — | — | — |
 
 - 위젯은 `app.py` 에서 `st.navigation` 앞에 그린다. 매 실행마다 같은 key로 그려지므로 페이지를 옮겨도 값이 유지된다 (IA 4-1절).
 - `on_change` 콜백이 위젯 값을 `st.session_state["filters"] = {"period": (date, date), "companies": [...], "keywords": [...]}` 로 옮긴다. 화면 코드는 위젯 key가 아니라 `filters` 만 읽는다 (현재 골격이 `st.session_state["filters"]` 를 읽음).
-- `filters.reset()` 은 세 위젯 key와 `filters` 를 기본값으로 되돌리고 화면별 상태 key(4-4절)는 지우지 않는다.
+- 기업·카테고리는 `st.multiselect` 대신 체크박스 드롭다운을 쓴다. 항목을 하나 고를 때마다 목록이 닫히지 않게 하기 위해서다(팝오버는 안의 체크박스로 다시 실행돼도 열린 채로 있다). 체크박스 `on_change` 콜백은 체크된 항목을 선택지 순서대로 모아 `filters["companies"]`·`flt_companies`(카테고리는 `filters["keywords"]`·`flt_keywords`)에 함께 넣는다.
+- 기업·카테고리의 기준값은 `filters` 이다. 체크박스 key(`flt_co_*`·`flt_kw_*`)는 매 실행 위젯을 그리기 전에 `filters` 에서 다시 채운다. 그래서 L1·L4 이동(4-4절)이나 초기화가 `filters` 를 바꾸면 체크 상태와 버튼 요약이 그대로 따라간다.
+- `filters.reset()` 은 `flt_period`·`flt_companies`·`flt_keywords` 와 `filters` 를 기본값으로 되돌리고(체크박스는 위 규칙대로 다음 실행에 전체 선택으로 그려진다) 화면별 상태 key(4-4절)는 지우지 않는다.
 - 위젯 아래 `st.caption("필터는 모든 차트에 적용됩니다. 화면별 적용 범위는 각 화면 상단을 보세요.")`.
 
 ### 4-2. 데이터에 적용하는 규칙
@@ -407,7 +409,7 @@ IA 5절 L1~L9의 구현. 필터를 바꾸는 이동은 위젯 key(`flt_*`)와 `f
 
 | key | 화면 | 값 |
 |---|---|---|
-| `filters`, `flt_period`, `flt_companies`, `flt_keywords` | 공통 | 4-1절 |
+| `filters`, `flt_period`, `flt_companies`, `flt_keywords`, `flt_co_0`~`flt_co_4`, `flt_kw_0`~`flt_kw_5` | 공통 | 4-1절 (체크박스 key는 `filters` 에서 매 실행 다시 채움) |
 | `s1_unit`, `s1_series`, `s1_excl_team`, `s1_spike` | S1 | 단위(월/주), 계열(출처별/키워드별), 팀원수집 제외 여부, 선택한 급증 시점 |
 | `s2_label`, `s2_lang`, `s2_rows` | S2 | 라벨·언어 목록 필터, 표시 행 수 |
 | `s4_company`, `s4_rcept` | S4 | 타임라인 기업, 선택한 공시 `rcept_no` |
