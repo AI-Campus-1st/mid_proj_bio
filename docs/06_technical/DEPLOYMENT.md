@@ -13,7 +13,7 @@
 | 공시 RAG 색인(`chroma_db/`) | 데이터 이미지에 넣고 앱 이미지 빌드 때 합친다 | Render 서비스는 이미지 하나만 실행하므로 따로 붙일 수 없다 |
 | 공개하지 않는 데이터 | 뉴스 원문, DART 공시 원문, 통합 DB, 기사 URL·제목이 든 산출물 | 3절. 이미 커밋된 기록은 프로젝트를 마친 뒤 삭제를 검토한다 |
 | Q&A 비용 보호 | OpenAI 배포 전용 프로젝트의 월 사용 한도만 설정 | 코드에는 질문 수 제한을 두지 않는다 |
-| Render 인스턴스 | **Standard (2GB) 권장** | Q&A 를 쓰면 약 550MB 가 필요해 512MB(Free·Starter)를 넘는다 (5절) |
+| Render 인스턴스 | **Free (512MB)** | Free 요금제에서 구동됨을 확인했다 (2026-11-20). 로컬 측정치와 메모리가 부족할 때의 대처는 5-4·9절 |
 
 ## 2. 구성
 
@@ -103,7 +103,7 @@ GitHub → Settings → Developer settings → Personal access tokens → **Toke
 |---|---|
 | Project / Environment | 1 의 프로젝트 / `Production` |
 | Region | Singapore (한국에서 가장 가까움) |
-| Instance Type | Standard (2GB). 로컬 측정 — 7개 화면을 연 뒤 약 200MB, 공시 색인 검색 최대 약 345MB, Q&A 사용 시 약 550MB |
+| Instance Type | Free (512MB). 이 요금제에서 구동됨을 확인했다 (2026-11-20). Free 는 한동안 접속이 없으면 서비스가 잠들고, 다음 첫 접속 때 다시 켜지느라 느리다. 참고로 로컬 측정치는 7개 화면을 연 뒤 약 200MB, 공시 색인 검색 프로세스 최대 약 345MB |
 | Environment Variables | `OPENAI_API_KEY` = 5-3 의 키. 없으면 S6 만 "설정 확인" 안내를 띄운다 |
 | Health Check Path | `/_stcore/health` |
 | Docker Command | 비워 둔다 (이미지의 실행 명령이 Render 의 `PORT` 를 그대로 쓴다) |
@@ -223,7 +223,7 @@ Render 서비스 Settings 에서 이미지 태그를 이전 `sha-<커밋>` 으�
 | Render 빌드 중 `failed to fetch anonymous token ... mid_proj_bio-data ... 401 Unauthorized` (2026-11-19) | 서비스를 Git 저장소로 만들어 Render 가 Dockerfile 을 직접 빌드했고, Render 빌드 서버에는 ghcr 로그인 정보가 없다 | 서비스를 **Existing Image** 로 다시 만든다 (5-4) |
 | 로컬 빌드 중 같은 401 | `docker login ghcr.io` 를 하지 않았거나, 로그인한 곳과 다른 환경(WSL·다른 PC)에서 빌드 | 빌드하는 환경에서 6-1 로그인 |
 | GitHub Actions `HEAD .../mid_proj_bio-data/manifests/latest: 403 Forbidden` (2026-11-19, main 병합 직후) | 데이터 패키지의 Manage Actions access 에 저장소가 없어 Actions 토큰이 비공개 패키지를 읽지 못함 | 워크플로(`.github/workflows/deploy.yml`)를 삭제하고 로컬 빌드로 일원화 (2026-11-20). 다시 자동화하려면 데이터 패키지에 저장소 Read 권한을 주고 워크플로를 되살린다 (`git show feec338:.github/workflows/deploy.yml`) |
-| Render 에서 메모리 부족으로 재시작 | 512MB 인스턴스에서 Q&A 를 쓰면 약 550MB 필요 | Standard (2GB) 로 올린다 |
+| Render 에서 메모리 부족으로 재시작 | Free(512MB)에서 구동은 확인했지만, 로컬 측정으로는 화면과 공시 Q&A 를 함께 쓰면 512MB 에 가깝다. 접속이 몰리면 넘을 수 있다 | Render Logs 에서 메모리 초과로 재시작됐는지 확인하고, 반복되면 Standard (2GB) 로 올린다 |
 
 ## 10. 남은 일
 
