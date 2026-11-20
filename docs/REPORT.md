@@ -3,7 +3,8 @@
 > **팀:** `kevin110419` · `dtt-dtdt`(한주) · `10010197`  
 > **기간:** 2026-11-13 ~ 11-19 (데이터 기간 2023-10-19 ~ 2026-10-19)  
 > **저장소:** `AI-Campus-1st/mid_proj_bio` · 실행: 저장소 루트에서 `streamlit run dashboard/app.py`  
-> **작성:** 2026-11-19, 저장소의 문서·코드·결과 파일을 근거로 정리. 장마다 자세한 내용이 있는 문서를 함께 적었다.
+> **배포:** https://mid-proj-bio-latest.onrender.com/ (Render, Docker 이미지 — 6-4절)  
+> **작성:** 2026-11-19, 저장소의 문서·코드·결과 파일을 근거로 정리(6-4절 배포는 11-20 추가). 장마다 자세한 내용이 있는 문서를 함께 적었다.
 
 ---
 
@@ -365,6 +366,39 @@
   - 차트 데이터 색은 색각 대비를 검증한 값을 그대로 썼다.
 - **뺀 것:** 규제·정책 화면에 계획했던 "해외 CDMO 언급 수" 차트는 해외 CDMO를 셀 기준(대상 기업 목록·영문 표기)을 정하지 못해 "준비 중"으로만 남아 있었다. 근거 없는 수치를 보여 주지 않으려고 화면에서 뺐다([DECISIONS](07_project-management/DECISIONS.md) D-38). 이제 "준비 중"으로 남은 요소는 없다.
 
+### 6-4. 배포
+
+- **주소:** https://mid-proj-bio-latest.onrender.com/ — 누구나 접속할 수 있다.
+- **방식:** 대시보드를 Docker 이미지로 만들어 GitHub Container Registry(ghcr.io)의 **비공개 패키지**에 올리고, Render 웹 서비스가 완성된 이미지를 받아 실행한다. 화면은 공개하고, 이미지와 원천 데이터는 공개하지 않는다. ([DEPLOYMENT](06_technical/DEPLOYMENT.md))
+
+```
+데이터 이미지 mid_proj_bio-data (비공개: 통합 DB · 공시 RAG 색인 · 기사 URL·제목이 든 산출물 7개)
+   │ 앱 이미지를 빌드할 때 COPY --from 으로 합친다
+   ▼
+앱 이미지 mid_proj_bio (비공개: 코드 + 공개 산출물 12개 + 위 데이터)
+   │ Render: Existing Image 로 받아 실행, 이미지를 올린 뒤 수동 배포
+   ▼
+Render 웹 서비스 (공개 URL, OPENAI_API_KEY 는 Render 환경변수)
+```
+
+| 결정 | 이유 |
+|---|---|
+| 데이터를 별도 이미지로 분리 | DB(약 107MB)와 색인(약 692MB)은 git에 없다. 데이터를 가진 팀원이 로컬에서 데이터 이미지를 만들고, 앱 이미지는 코드만 바뀌어도 다시 빌드할 수 있게 했다 |
+| 비공개로 둘 데이터 | 저장소가 공개라서 뉴스 원문, DART 공시 원문, 통합 DB, 기사 URL·제목이 든 산출물은 이미지에도 공개 저장소에도 두지 않기로 했다. 이미지는 넣을 파일만 나열하는 방식(`.dockerignore` 허용 목록)이라 `.env`와 원천 데이터가 들어가지 않는다 |
+| Render는 빌드하지 않고 완성된 이미지만 받는다 | Render가 저장소를 직접 빌드하자 비공개 데이터 이미지를 받지 못했다(401) |
+| 로컬에서 빌드·push, Render에서 수동 배포 | GitHub Actions 자동 배포는 Actions가 비공개 데이터 이미지를 읽을 권한이 없어 실패했다(403). 워크플로를 지우고 로컬 빌드로 일원화했다 |
+| Render Standard (2GB) | 로컬 측정에서 화면 7개를 연 뒤 약 200MB, 공시 Q&A까지 쓰면 약 550MB였다. 512MB 요금제로는 부족하다 |
+| Q&A 비용은 OpenAI 쪽 한도로 막는다 | 누구나 질문할 수 있어, 배포용 키는 배포 전용 OpenAI 프로젝트에서 발급하고 그 프로젝트에 월 사용 한도를 걸기로 했다. 코드에는 질문 수 제한을 두지 않았다 |
+
+**확인 결과**
+- **로컬 이미지 (11-19):** 앱 이미지는 압축 약 733MB, 데이터 이미지는 약 418MB다. 이미지 안에 `.env`·뉴스 원문·DART 원문·팀원 기록 파일이 없음을 확인했다. 컨테이너 안에서 필터 반영 점검(6-3절)을 돌려 화면 실행 119회, 오류 0건으로 로컬과 같았다.
+- **비공개 확인:** 두 패키지 모두 로그인 없이는 받을 수 없다(익명 요청 401).
+- **배포 (11-20):** 공개 URL의 첫 화면과 상태 확인 주소(`/_stcore/health`)가 정상 응답했다.
+
+**한계**
+- 원천 데이터를 git에서 빼는 작업은 팀원 작업에 영향이 있어 공지 뒤로 미뤘다. 그때까지 원천 데이터는 공개 저장소와 그 커밋 기록에 남아 있다.
+- 배포는 수동이다. 코드나 데이터가 바뀌면 이미지를 다시 빌드·push하고 Render에서 배포해야 한다.
+
 ---
 
 ## 7. 회고
@@ -440,4 +474,18 @@ python analysis/label_sentiment.py --all --dry-run   # LLM 비용 확인 → --a
 python rag/build_index.py                 # 공시 색인 (임베딩 비용 약 $0.58)
 streamlit run dashboard/app.py            # 대시보드
 python tests/check_dashboard_filters.py   # 필터 반영 점검
+```
+
+배포(6-4절)는 ghcr.io에 로그인한 뒤 아래 순서로 한다. 자세한 절차와 처음 한 번 하는 설정은 [DEPLOYMENT](06_technical/DEPLOYMENT.md) 5·6절에 있다.
+
+```bash
+# ghcr.io 로그인 (write:packages 토큰)
+docker login ghcr.io -u <GitHub 닉네임>
+# 데이터 이미지 (데이터가 바뀔 때만)
+docker build -f Dockerfile.data -t ghcr.io/ai-campus-1st/mid_proj_bio-data:latest .
+docker push ghcr.io/ai-campus-1st/mid_proj_bio-data:latest
+# 앱 이미지 (데이터 이미지를 합침)
+docker build -t ghcr.io/ai-campus-1st/mid_proj_bio:latest .
+docker push ghcr.io/ai-campus-1st/mid_proj_bio:latest
+# Render 서비스 → Manual Deploy → Deploy latest reference
 ```
